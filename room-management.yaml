@@ -13,7 +13,7 @@ paths:
     get:
       summary: Get all known rooms
       tags:
-        - rooms
+        - Rooms
       operationId: getRooms
       description: Returns all rooms managed by this room management API.
       responses:
@@ -27,7 +27,7 @@ paths:
     get:
       summary: Find all rooms that are available for a booking
       tags:
-        - rooms
+        - Rooms
       operationId: findAvailableRooms
       description: |
         Returns all rooms that are available for a booking based on the provided information.
@@ -52,7 +52,7 @@ paths:
     get:
       summary: Get a specific room by ID
       tags:
-        - rooms
+        - Rooms
       operationId: getRoomById
       description: Returns details of a specific room identified by its UUID v7.
       parameters:
@@ -75,7 +75,7 @@ paths:
     put:
       summary: Update a specific room by ID
       tags:
-        - rooms
+        - Rooms
       operationId: updateRoomById
       description: Updates the details of a specific room identified by its UUID v7.
       parameters:
@@ -106,7 +106,7 @@ paths:
     delete:
       summary: Delete a specific room by ID
       tags:
-        - rooms
+        - Rooms
       operationId: deleteRoomById
       description: Deletes a specific room identified by its UUID v7.
       parameters:
@@ -128,7 +128,7 @@ paths:
     get:
       summary: Get all bookings for a specific room on a specific date
       tags:
-        - rooms
+        - Rooms
       operationId: getBookingsForRoom
       description: Returns all bookings for a specific room on a specific date.
       parameters:
@@ -161,7 +161,7 @@ paths:
     get:
       summary: Get all bookings
       tags:
-        - bookings
+        - Bookings
       operationId: getAllBookings
       description: Returns all bookings across all rooms.
       responses:
@@ -176,7 +176,7 @@ paths:
     post:
       summary: Try to book a room
       tags:
-        - bookings
+        - Bookings
       operationId: bookRoom
       description: Attempts to book a room based on the provided booking details.
       requestBody:
@@ -200,7 +200,7 @@ paths:
     get:
       summary: Get a specific booking by ID
       tags:
-        - bookings
+        - Bookings
       operationId: getBookingById
       description: Returns details of a specific booking identified by its UUID v7.
       parameters:
@@ -223,7 +223,7 @@ paths:
     delete:
       summary: Cancel a specific booking by ID
       tags:
-        - bookings
+        - Bookings
       operationId: cancelBookingById
       description: Cancels a specific booking identified by its UUID v7.
       parameters:
