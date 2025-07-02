@@ -31,28 +31,12 @@ paths:
       operationId: findAvailableRooms
       description: |
         Returns all rooms that are available for a booking based on the provided information.
-      parameters:
-        - name: startTime
-          in: query
-          required: true
-          description: Start time of the booking in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ).
-          schema:
-            type: string
-            format: date-time
-        - name: endTime
-          in: query
-          required: true
-          description: End time of the booking in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ).
-          schema:
-            type: string
-            format: date-time
-        - name: groupId
-          in: query
-          required: true
-          description: The ID of the student group for which the booking is made (UUID v7).
-          schema:
-            type: string
-            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomInquiry'
       responses:
         '200':
           description: Success. Returns a list of rooms that are available for the specified booking.
@@ -169,6 +153,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GetAllBookingsResponse'
+        '400':
+          description: Requested bookings for a date in the past.
         '404':
           description: Room not found.
   /bookings:
@@ -193,6 +179,66 @@ paths:
         - bookings
       operationId: bookRoom
       description: Attempts to book a room based on the provided booking details.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoomBookingRequest'
+      responses:
+        '201':
+          description: Booking created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '404':
+          description: Room not found.
+        '409':
+          description: Booking conflicts with existing bookings.
+  /bookings/{bookingId}:
+    get:
+      summary: Get a specific booking by ID
+      tags:
+        - bookings
+      operationId: getBookingById
+      description: Returns details of a specific booking identified by its UUID v7.
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          description: The unique identifier of the booking (UUID v7).
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success. Returns the details of the specified booking.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        '404':
+          description: Booking not found.
+    delete:
+      summary: Cancel a specific booking by ID
+      tags:
+        - bookings
+      operationId: cancelBookingById
+      description: Cancels a specific booking identified by its UUID v7.
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          description: The unique identifier of the booking (UUID v7).
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Booking cancelled successfully.
+        '404':
+          description: Booking not found.
 components:
   schemas:
     Characteristic:
@@ -255,6 +301,59 @@ components:
         - id
         - name
         - locatedAt
+    RoomInquiry:
+      type: object
+      properties:
+        startTime:
+          type: string
+          format: date-time
+          description: Start time of the booking in ISO 8601 format.
+        endTime:
+          type: string
+          format: date-time
+          description: End time of the booking in ISO 8601 format.
+        groupId:
+          type: string
+          format: uuid
+          description: The ID of the student group for which the booking is made.
+        characteristics:
+          type: array
+          description: Required characteristics for the room (e.g. capacity, projector).
+          items:
+            $ref: '#/components/schemas/Characteristic'
+      required:
+        - startTime
+        - endTime
+        - groupId
+    RoomBookingRequest:
+      type: object
+      properties:
+        roomId:
+          type: string
+          format: uuid
+          description: The ID of the room to be booked.
+        lecturerId:
+          type: string
+          format: uuid
+          description: The ID of the lecturer that is booked to the room.
+        studentGroupId:
+          type: string
+          format: uuid
+          description: The ID of the student group for which the booking is made.
+        startTime:
+          type: string
+          format: date-time
+          description: Start time of the booking in ISO 8601 format.
+        endTime:
+          type: string
+          format: date-time
+          description: End time of the booking in ISO 8601 format.
+      required:
+        - roomId
+        - lecturerId
+        - studentGroupId
+        - startTime
+        - endTime
     Booking:
       type: object
       properties:
