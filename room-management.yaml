@@ -1,0 +1,39 @@
+openapi: 3.1.1
+info:
+  title: Room Management API
+  version: 0.1.0
+  description: |
+    API for managing rooms in the Provadis building complex.
+    Allowing for CRUD operations as well as room bookings based on availability and room requirements.
+components:
+  schemas:
+    Characteristic:
+      type: object
+      properties:
+        type:
+          type: string
+          description: The type of a characteristic (e.g. "capacity", "projector", "television").
+        value:
+          oneOf:
+            - type: integer
+              description: Any numeric value for a characteristic (e.g. room capacity).
+            - type: boolean
+              description: Boolean value indicating presence of a feature (e.g. projector available).
+      
+    Room:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for a room (UUID v7).
+        name:
+          type: string
+          description: Human-readable name of a room.
+        locatedAt:
+          type: string
+          description: The building this room is located in.
+        characteristics:
+          type: array
+          items:
+            type:
