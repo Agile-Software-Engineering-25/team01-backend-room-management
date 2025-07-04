@@ -1,43 +1,71 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
-    java
-    id("org.springframework.boot") version "3.5.3"
-    id("io.spring.dependency-management") version "1.1.7"
+  java
+  id("org.springframework.boot") version "3.5.3"
+  id("io.spring.dependency-management") version "1.1.7"
+  id("org.openapi.generator") version "7.14.0"
 }
 
 group = "dev.playo"
 version = "0.0.1-SNAPSHOT"
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(24)
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(24)
+  }
+}
+
+openApiGenerate {
+  validateSpec.set(false)
+  generatorName.set("spring")
+  inputSpec.set("$rootDir/room-management.yaml")
+  outputDir.set("${layout.buildDirectory.get()}/generated")
+  apiPackage.set("dev.playo.generated.roommanagement.api")
+  modelPackage.set("dev.playo.generated.roommanagement.model")
+  configOptions.set(mapOf(
+    "dateLibrary" to "java8",
+    "interfaceOnly" to "true",
+    "useSpringBoot3" to "true",
+    "useSwaggerUi" to "false",
+    "skipDefaultInterface" to "true",
+  ))
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir("${layout.buildDirectory.get()}/generated/src/main/java")
     }
+  }
 }
 
 configurations {
-    compileOnly {
-        extendsFrom(configurations.annotationProcessor.get())
-    }
+  compileOnly {
+    extendsFrom(configurations.annotationProcessor.get())
+  }
 }
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.flywaydb:flyway-core")
-    implementation("org.flywaydb:flyway-database-postgresql")
-    compileOnly("org.projectlombok:lombok")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-    runtimeOnly("org.postgresql:postgresql")
-    annotationProcessor("org.projectlombok:lombok")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  implementation("org.springframework.boot:spring-boot-starter-validation")
+  implementation("org.springframework.boot:spring-boot-starter-actuator")
+  implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+  implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.flywaydb:flyway-core")
+  implementation("org.flywaydb:flyway-database-postgresql")
+  compileOnly("org.projectlombok:lombok")
+  developmentOnly("org.springframework.boot:spring-boot-devtools")
+  developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+  runtimeOnly("org.postgresql:postgresql")
+  annotationProcessor("org.projectlombok:lombok")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform()
+  useJUnitPlatform()
 }
