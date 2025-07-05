@@ -9,5 +9,4 @@ public class RoomManagementApplication {
   public static void main(String[] args) {
     SpringApplication.run(RoomManagementApplication.class, args);
   }
-
 }

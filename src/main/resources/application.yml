@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/backend
+    username: backend
+    password: backend
+  jpa:
+    hibernate:
+      ddl-auto: update
+hibernate:
+  generate_statistics: true

@@ -29,6 +29,9 @@ openApiGenerate {
     "useSpringBoot3" to "true",
     "useSwaggerUi" to "false",
     "skipDefaultInterface" to "true",
+    "annotationLibrary" to "none",
+    "documentationProvider" to "source",
+    "openApiNullable" to "false"
   ))
 }
 
@@ -55,8 +58,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
-  implementation("org.flywaydb:flyway-core")
-  implementation("org.flywaydb:flyway-database-postgresql")
+  //implementation("org.flywaydb:flyway-core")
+  //implementation("org.flywaydb:flyway-database-postgresql")
   compileOnly("org.projectlombok:lombok")
   developmentOnly("org.springframework.boot:spring-boot-devtools")
   developmentOnly("org.springframework.boot:spring-boot-docker-compose")
