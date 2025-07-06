@@ -6,6 +6,7 @@ import dev.playo.generated.roommanagement.model.RoomBookingRequest;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -21,21 +22,23 @@ public class BookingController implements BookingsApi {
 
   @Override
   public ResponseEntity<Booking> bookRoom(RoomBookingRequest roomBookingRequest) {
-    return null;
+    return ResponseEntity.ok(this.bookingService.createBooking(roomBookingRequest));
   }
 
   @Override
   public ResponseEntity<Void> cancelBookingById(UUID bookingId) {
-    return null;
+    this.bookingService.cancelBooking(bookingId);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
   @Override
   public ResponseEntity<List<Booking>> getAllBookings() {
-    return null;
+    return ResponseEntity.ok(this.bookingService.allKnownBookings());
   }
 
   @Override
   public ResponseEntity<Booking> getBookingById(UUID bookingId) {
-    return null;
+    var booking = this.bookingService.findBooking(bookingId);
+    return ResponseEntity.ok(booking.toBookingDto());
   }
 }

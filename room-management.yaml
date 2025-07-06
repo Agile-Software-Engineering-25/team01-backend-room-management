@@ -34,7 +34,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Room'
+              $ref: '#/components/schemas/RoomCreateRequest'
       responses:
         '201':
           description: Room created successfully.
@@ -112,7 +112,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Room'
+              $ref: '#/components/schemas/RoomCreateRequest'
       responses:
         '200':
           description: Room updated successfully.
@@ -262,25 +262,6 @@ paths:
           description: Booking not found.
 components:
   schemas:
-    Characteristic:
-      type: object
-      properties:
-        type:
-          type: string
-          description: The type of a characteristic (e.g. "capacity", "projector", "television").
-          example:
-            - CAPACITY
-            - PROJECTOR
-            - TELEVISION
-        value:
-          oneOf:
-            - type: integer
-              description: Any numeric value for a characteristic (e.g. room capacity).
-            - type: boolean
-              description: Boolean value indicating presence of a feature (e.g. projector available).
-      required:
-        - type
-        - value
     GetAllRoomsResponse:
       type: object
       properties:
@@ -314,12 +295,22 @@ components:
           type: string
           description: The building this room is located in.
           example: "B845"
-        characteristics:
-          type: array
-          items:
-            $ref: '#/components/schemas/Characteristic'
       required:
         - id
+        - name
+        - locatedAt
+    RoomCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Human-readable name of the room.
+          example: "1.21"
+        locatedAt:
+          type: string
+          description: The building this room is located in.
+          example: "B845"
+      required:
         - name
         - locatedAt
     RoomInquiry:
@@ -337,11 +328,6 @@ components:
           type: string
           format: uuid
           description: The ID of the student group for which the booking is made.
-        characteristics:
-          type: array
-          description: Required characteristics for the room (e.g. capacity, projector).
-          items:
-            $ref: '#/components/schemas/Characteristic'
       required:
         - startTime
         - endTime

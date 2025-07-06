@@ -1,15 +1,16 @@
 package dev.playo.room.room.data;
 
-import dev.playo.room.characteristic.CharacteristicEntity;
+import dev.playo.generated.roommanagement.model.Room;
 import dev.playo.room.util.UUID7Generator;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.util.List;
 import java.util.UUID;
+import lombok.Data;
+import lombok.NonNull;
 import org.hibernate.annotations.UuidGenerator;
 
+@Data
 @Entity
 @Table(name = "rooms")
 public class RoomEntity {
@@ -22,6 +23,10 @@ public class RoomEntity {
 
   private String locatedAt;
 
-  @ElementCollection
-  private List<CharacteristicEntity> characteristics;
+  public @NonNull Room toRoomDto() {
+    return new Room()
+      .id(this.getId())
+      .name(this.getName())
+      .locatedAt(this.getLocatedAt());
+  }
 }
