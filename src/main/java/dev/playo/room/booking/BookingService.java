@@ -37,7 +37,7 @@ public class BookingService {
       return this.bookingRepository.save(bookingEntity).toBookingDto();
     } catch (DataIntegrityViolationException exception) {
       throw new GeneralProblemException(
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.CONFLICT,
         "Booking for room %s from %s to %s overlaps with an existing booking.".formatted(
           requestedRoom.getName(),
           request.getStartTime(),
