@@ -295,10 +295,51 @@ components:
           type: string
           description: The building this room is located in.
           example: "B845"
+        characteristics:
+          type: array
+          description: List of characteristics of the room.
+          items:
+            $ref: '#/components/schemas/Characteristic'
       required:
         - id
         - name
         - locatedAt
+        - characteristics
+    Characteristic:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Characteristic type.
+          enum:
+            - PROJECTOR
+            - TELEVISION
+            - SEATS
+            - WHITEBOARD
+        value:
+          type: object
+          description: Value of the characteristic.
+      required:
+        - type
+        - value
+    SearchCharacteristic:
+      allOf:
+        - $ref: '#/components/schemas/Characteristic'
+        - properties:
+            operator:
+              type: string
+              description: Operator to apply to the characteristic value.
+              enum:
+                - EQUALS
+                - NOT_EQUALS
+                - GREATER_THAN
+                - GREATER_THAN_OR_EQUAL
+                - LESS_THAN
+                - LESS_THAN_OR_EQUAL
+      required:
+        - type
+        - value
+        - operator
     RoomCreateRequest:
       type: object
       properties:
@@ -310,9 +351,15 @@ components:
           type: string
           description: The building this room is located in.
           example: "B845"
+        characteristics:
+          type: array
+          description: List of characteristics of the room.
+          items:
+            $ref: '#/components/schemas/Characteristic'
       required:
         - name
         - locatedAt
+        - characteristics
     RoomInquiry:
       type: object
       properties:
@@ -328,10 +375,16 @@ components:
           type: string
           format: uuid
           description: The ID of the student group for which the booking is made.
+        characteristics:
+          type: array
+          description: Characteristics required for the room.
+          items:
+            $ref: '#/components/schemas/SearchCharacteristic'
       required:
         - startTime
         - endTime
         - groupId
+        - characteristics
     RoomBookingRequest:
       type: object
       properties:
