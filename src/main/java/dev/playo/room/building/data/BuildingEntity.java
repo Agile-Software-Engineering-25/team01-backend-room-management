@@ -35,6 +35,7 @@ public class BuildingEntity {
       .id(this.id)
       .name(this.name)
       .address(this.address)
+      .description(this.description)
       .state(this.state);
   }
 }
