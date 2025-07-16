@@ -6,6 +6,7 @@ import dev.playo.generated.roommanagement.model.RoomCreateRequest;
 import dev.playo.generated.roommanagement.model.RoomInquiry;
 import dev.playo.generated.roommanagement.model.SearchCharacteristic;
 import dev.playo.room.booking.data.BookingRepository;
+import dev.playo.room.building.data.BuildingRepository;
 import dev.playo.room.exception.GeneralProblemException;
 import dev.playo.room.room.data.RoomEntity;
 import dev.playo.room.room.data.RoomRepository;
@@ -30,16 +31,19 @@ public class RoomService {
   private final EntityManager entityManager;
   private final RoomRepository repository;
   private final BookingRepository bookingRepository;
+  private final BuildingRepository buildingRepository;
 
   @Autowired
   public RoomService(
     EntityManager entityManager,
     @NonNull RoomRepository repository,
-    BookingRepository bookingRepository
+    BookingRepository bookingRepository,
+    BuildingRepository buildingRepository
   ) {
     this.entityManager = entityManager;
     this.repository = repository;
     this.bookingRepository = bookingRepository;
+    this.buildingRepository = buildingRepository;
   }
 
   public @NonNull Room createRoom(@NonNull RoomCreateRequest room) {
@@ -51,7 +55,8 @@ public class RoomService {
 
     var roomEntity = new RoomEntity();
     roomEntity.setName(lowerCaseName);
-    roomEntity.setLocatedAt(room.getLocatedAt());
+    //TODO: might need to validate building existence
+    roomEntity.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
     roomEntity.setCharacteristics(room.getCharacteristics());
     var savedRoom = this.repository.save(roomEntity);
     return savedRoom.toRoomDto();
@@ -115,6 +120,13 @@ public class RoomService {
     return entities.stream().map(RoomEntity::toRoomDto).toList();
   }
 
+  public @NonNull List<Room> findRoomsByBuildingId(@NonNull UUID buildingId) {
+    return this.repository.findRoomEntityByBuildingId(buildingId)
+      .stream()
+      .map(RoomEntity::toRoomDto)
+      .toList();
+  }
+
   public @NonNull List<Room> allKnownRooms() {
     return this.repository.findAll()
       .stream()
@@ -145,7 +157,8 @@ public class RoomService {
     }
 
     existingRoom.setName(lowerCaseName);
-    existingRoom.setLocatedAt(room.getLocatedAt());
+    // TODO: might need to validate building existence
+    existingRoom.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
     var updatedRoom = this.repository.save(existingRoom);
     return updatedRoom.toRoomDto();
   }

@@ -2,10 +2,13 @@ package dev.playo.room.room.data;
 
 import dev.playo.generated.roommanagement.model.Characteristic;
 import dev.playo.generated.roommanagement.model.Room;
+import dev.playo.room.building.data.BuildingEntity;
 import dev.playo.room.util.UUID7Generator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +29,8 @@ public class RoomEntity {
 
   private String name;
 
-  private String locatedAt;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  private BuildingEntity building;
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
@@ -36,7 +40,7 @@ public class RoomEntity {
     return new Room()
       .id(this.getId())
       .name(this.getName())
-      .locatedAt(this.getLocatedAt())
+      .buildingId(this.building.getId())
       .characteristics(this.getCharacteristics());
   }
 }

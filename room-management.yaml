@@ -1,21 +1,134 @@
 openapi: 3.0.0
 info:
   title: Room Management API
-  version: 0.1.0
+  version: 0.2.0
   description: |
-    API for managing rooms in the Provadis building complex.
-    Allowing for CRUD operations as well as room bookings based on availability and room requirements.
+    API for managing buildings and rooms in the Provadis complex.
+    Supports CRUD operations for buildings and rooms, room bookings, and availability inquiries.
 servers:
   - url: https://api.provadis.com/v1
-    description: Production server for the Provadis Room Management API
+    description: Production server
 paths:
+  /buildings:
+    get:
+      summary: Get all buildings for the Provadis complex
+      tags:
+        - Buildings
+      operationId: getBuildings
+      responses:
+        '200':
+          description: List of all buildings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAllBuildingsResponse'
+    post:
+      summary: Create a new building in the Provadis complex
+      tags:
+        - Buildings
+      operationId: createBuilding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BuildingCreateRequest'
+      responses:
+        '201':
+          description: Building created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Building'
+        '400':
+          description: The building could not be created.
+  /buildings/{buildingId}:
+    parameters:
+      - name: buildingId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: UUID of the building
+    get:
+      summary: Get building by ID
+      tags:
+        - Buildings
+      operationId: getBuildingById
+      responses:
+        '200':
+          description: The building with the specified ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Building'
+        '404':
+          description: There is no building with the specified ID.
+    put:
+      summary: Updates an existing building by its ID.
+      tags:
+        - Buildings
+      operationId: updateBuilding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BuildingCreateRequest'
+      responses:
+        '200':
+          description: The building with the specified ID was updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Building'
+        '404':
+          description: There is no building with the specified ID.
+    delete:
+      summary: Delete building by ID.
+      tags:
+        - Buildings
+      operationId: deleteBuilding
+      responses:
+        '204':
+          description: Building deleted
+        '400':
+          description: Cannot delete building with existing rooms or bookings.
+        '404':
+          description: Not found
+  /buildings/{buildingId}/rooms:
+    get:
+      summary: Get all rooms in a building
+      tags:
+        - Buildings
+      operationId: getRoomsForBuilding
+      parameters:
+        - name: buildingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the building
+      responses:
+        '200':
+          description: List of rooms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Room'
+        '404':
+          description: Building not found
+
   /rooms:
     get:
       summary: Get all known rooms
       tags:
         - Rooms
       operationId: getRooms
-      description: Returns all rooms managed by this room management API.
       responses:
         '200':
           description: Success. Returns a list of all known rooms.
@@ -28,7 +141,6 @@ paths:
       tags:
         - Rooms
       operationId: createRoom
-      description: Creates a new room with the provided details.
       requestBody:
         required: true
         content:
@@ -43,7 +155,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Room'
         '400':
-          description: Room creation failed XYZ.
+          description: Room creation failed.
   /rooms/inquiry:
     get:
       summary: Find all rooms that are available for a booking
@@ -262,6 +374,172 @@ paths:
           description: Booking not found.
 components:
   schemas:
+    GetAllBuildingsResponse:
+      type: object
+      properties:
+        buildings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Building'
+      required:
+        - buildings
+    Building:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for a building
+        name:
+          type: string
+          description: Name of the building
+          example: "Main Campus"
+        address:
+          type: string
+          description: Street address of the building
+          example: "Industriepark Höchst, Frankfurt am Main"
+        description:
+          type: string
+          description: Description of the building
+        state:
+          $ref: '#/components/schemas/BuildingState'
+      required:
+        - id
+        - name
+        - address
+        - state
+    BuildingCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the building
+        address:
+          type: string
+          description: Street address of the building
+        description:
+          type: string
+          description: Description of the building
+        state:
+          $ref: '#/components/schemas/BuildingState'
+      required:
+        - name
+        - address
+        - state
+    Room:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        buildingId:
+          type: string
+          format: uuid
+          description: The building this room belongs to
+        characteristics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Characteristic'
+      required:
+        - id
+        - name
+        - buildingId
+        - characteristics
+    RoomCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        buildingId:
+          type: string
+          format: uuid
+        characteristics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Characteristic'
+      required:
+        - name
+        - buildingId
+        - characteristics
+    Characteristic:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - PROJECTOR
+            - TELEVISION
+            - SEATS
+            - WHITEBOARD
+        value:
+          type: object
+      required:
+        - type
+        - value
+    SearchCharacteristic:
+      allOf:
+        - $ref: '#/components/schemas/Characteristic'
+        - properties:
+            operator:
+              type: string
+              enum:
+                - EQUALS
+                - NOT_EQUALS
+                - GREATER_THAN
+                - GREATER_THAN_OR_EQUAL
+                - LESS_THAN
+                - LESS_THAN_OR_EQUAL
+      required:
+        - type
+        - value
+        - operator
+    RoomInquiry:
+      type: object
+      properties:
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        groupId:
+          type: string
+          format: uuid
+        characteristics:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchCharacteristic'
+      required:
+        - startTime
+        - endTime
+        - groupId
+        - characteristics
+    RoomBookingRequest:
+      type: object
+      properties:
+        roomId:
+          type: string
+          format: uuid
+        lecturerId:
+          type: string
+          format: uuid
+        studentGroupId:
+          type: string
+          format: uuid
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+      required:
+        - roomId
+        - lecturerId
+        - studentGroupId
+        - startTime
+        - endTime
     GetAllRoomsResponse:
       type: object
       properties:
@@ -280,167 +558,33 @@ components:
             $ref: '#/components/schemas/Booking'
       required:
         - bookings
-    Room:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Unique identifier for a room (UUID v7).
-        name:
-          type: string
-          description: Human-readable name of a room.
-          example: "1.21"
-        locatedAt:
-          type: string
-          description: The building this room is located in.
-          example: "B845"
-        characteristics:
-          type: array
-          description: List of characteristics of the room.
-          items:
-            $ref: '#/components/schemas/Characteristic'
-      required:
-        - id
-        - name
-        - locatedAt
-        - characteristics
-    Characteristic:
-      type: object
-      properties:
-        type:
-          type: string
-          description: Characteristic type.
-          enum:
-            - PROJECTOR
-            - TELEVISION
-            - SEATS
-            - WHITEBOARD
-        value:
-          type: object
-          description: Value of the characteristic.
-      required:
-        - type
-        - value
-    SearchCharacteristic:
-      allOf:
-        - $ref: '#/components/schemas/Characteristic'
-        - properties:
-            operator:
-              type: string
-              description: Operator to apply to the characteristic value.
-              enum:
-                - EQUALS
-                - NOT_EQUALS
-                - GREATER_THAN
-                - GREATER_THAN_OR_EQUAL
-                - LESS_THAN
-                - LESS_THAN_OR_EQUAL
-      required:
-        - type
-        - value
-        - operator
-    RoomCreateRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Human-readable name of the room.
-          example: "1.21"
-        locatedAt:
-          type: string
-          description: The building this room is located in.
-          example: "B845"
-        characteristics:
-          type: array
-          description: List of characteristics of the room.
-          items:
-            $ref: '#/components/schemas/Characteristic'
-      required:
-        - name
-        - locatedAt
-        - characteristics
-    RoomInquiry:
-      type: object
-      properties:
-        startTime:
-          type: string
-          format: date-time
-          description: Start time of the booking in ISO 8601 format.
-        endTime:
-          type: string
-          format: date-time
-          description: End time of the booking in ISO 8601 format.
-        groupId:
-          type: string
-          format: uuid
-          description: The ID of the student group for which the booking is made.
-        characteristics:
-          type: array
-          description: Characteristics required for the room.
-          items:
-            $ref: '#/components/schemas/SearchCharacteristic'
-      required:
-        - startTime
-        - endTime
-        - groupId
-        - characteristics
-    RoomBookingRequest:
-      type: object
-      properties:
-        roomId:
-          type: string
-          format: uuid
-          description: The ID of the room to be booked.
-        lecturerId:
-          type: string
-          format: uuid
-          description: The ID of the lecturer that is booked to the room.
-        studentGroupId:
-          type: string
-          format: uuid
-          description: The ID of the student group for which the booking is made.
-        startTime:
-          type: string
-          format: date-time
-          description: Start time of the booking in ISO 8601 format.
-        endTime:
-          type: string
-          format: date-time
-          description: End time of the booking in ISO 8601 format.
-      required:
-        - roomId
-        - lecturerId
-        - studentGroupId
-        - startTime
-        - endTime
+    BuildingState:
+      type: string
+      description: Describes the operational state of a building.
+      enum:
+        - open
+        - closed
     Booking:
       type: object
       properties:
         id:
           type: string
           format: uuid
-          description: Unique identifier for a booking (UUID v7).
         roomId:
           type: string
           format: uuid
-          description: The ID of the room being booked.
         lecturerId:
           type: string
           format: uuid
-          description: The ID of the lecturer that is booked to the room.
         studentGroupId:
           type: string
           format: uuid
-          description: The ID of the student group for which the booking is made.
         startTime:
           type: string
           format: date-time
-          description: Start time of the booking in ISO 8601 format.
         endTime:
           type: string
           format: date-time
-          description: End time of the booking in ISO 8601 format.
       required:
         - id
         - roomId
