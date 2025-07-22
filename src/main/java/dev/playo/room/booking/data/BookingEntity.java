@@ -1,8 +1,8 @@
 package dev.playo.room.booking.data;
 
 import dev.playo.generated.roommanagement.model.Booking;
-import dev.playo.generated.roommanagement.model.Room;
 import dev.playo.room.room.data.RoomEntity;
+import dev.playo.room.util.DateTimeNormalizer;
 import dev.playo.room.util.UUID7Generator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,8 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NonNull;
@@ -38,9 +36,11 @@ public class BookingEntity {
 
   public @NonNull Booking toBookingDto() {
     return new Booking()
-        .id(this.id)
-        .startTime(OffsetDateTime.ofInstant(this.startTime, ZoneOffset.systemDefault()))
-        .endTime(OffsetDateTime.ofInstant(this.endTime, ZoneOffset.systemDefault()))
-        .roomId(this.room.getId());
+      .id(this.id)
+      .roomId(this.room.getId())
+      .startTime(DateTimeNormalizer.fromInstant(this.startTime))
+      .endTime(DateTimeNormalizer.fromInstant(this.endTime))
+      .lecturerId(UUID.randomUUID())
+      .studentGroupId(UUID.randomUUID());
   }
 }

@@ -3,8 +3,10 @@ package dev.playo.room.building;
 import dev.playo.generated.roommanagement.api.BuildingsApi;
 import dev.playo.generated.roommanagement.model.Building;
 import dev.playo.generated.roommanagement.model.BuildingCreateRequest;
+import dev.playo.generated.roommanagement.model.GetAllBookingsResponse;
 import dev.playo.generated.roommanagement.model.GetAllBuildingsResponse;
 import dev.playo.generated.roommanagement.model.Room;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.NonNull;
@@ -31,6 +33,12 @@ public class BuildingController implements BuildingsApi {
   public ResponseEntity<Void> deleteBuilding(UUID buildingId) {
     this.buildingService.deleteBuildingById(buildingId);
     return ResponseEntity.ok().build();
+  }
+
+  @Override
+  public ResponseEntity<GetAllBookingsResponse> getBookingsForBuilding(UUID buildingId, LocalDate date) {
+    var bookings = this.buildingService.allBookingsByBuildingIdAndDate(buildingId, date);
+    return ResponseEntity.ok(new GetAllBookingsResponse(bookings));
   }
 
   @Override

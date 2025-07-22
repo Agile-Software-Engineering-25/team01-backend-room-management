@@ -1,12 +1,16 @@
 package dev.playo.room.building;
 
+import dev.playo.generated.roommanagement.model.Booking;
 import dev.playo.generated.roommanagement.model.Building;
 import dev.playo.generated.roommanagement.model.BuildingCreateRequest;
 import dev.playo.generated.roommanagement.model.Room;
+import dev.playo.room.booking.data.BookingEntity;
+import dev.playo.room.booking.data.BookingRepository;
 import dev.playo.room.building.data.BuildingEntity;
 import dev.playo.room.building.data.BuildingRepository;
 import dev.playo.room.exception.GeneralProblemException;
 import dev.playo.room.room.RoomService;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.NonNull;
@@ -18,11 +22,16 @@ import org.springframework.stereotype.Service;
 public class BuildingService {
 
   private final RoomService roomService;
+  private final BookingRepository bookingRepository;
   private final BuildingRepository buildingRepository;
 
   @Autowired
-  public BuildingService(@NonNull RoomService roomService, @NonNull BuildingRepository buildingRepository) {
+  public BuildingService(
+    @NonNull RoomService roomService,
+    @NonNull BookingRepository bookingRepository,
+    @NonNull BuildingRepository buildingRepository) {
     this.roomService = roomService;
+    this.bookingRepository = bookingRepository;
     this.buildingRepository = buildingRepository;
   }
 
@@ -82,5 +91,13 @@ public class BuildingService {
 
   public @NonNull List<Room> allRoomsByBuildingId(@NonNull UUID buildingId) {
     return this.roomService.findRoomsByBuildingId(buildingId);
+  }
+
+  public @NonNull List<Booking> allBookingsByBuildingIdAndDate(@NonNull UUID buildingId, @NonNull LocalDate date) {
+    var building = this.findBuildingById(buildingId);
+    return this.bookingRepository.findBookingByBuildingAndDate(building, date)
+      .stream()
+      .map(BookingEntity::toBookingDto)
+      .toList();
   }
 }

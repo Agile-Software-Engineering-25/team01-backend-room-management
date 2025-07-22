@@ -5,6 +5,7 @@ import dev.playo.generated.roommanagement.model.Room;
 import dev.playo.generated.roommanagement.model.RoomCreateRequest;
 import dev.playo.generated.roommanagement.model.RoomInquiry;
 import dev.playo.generated.roommanagement.model.SearchCharacteristic;
+import dev.playo.room.booking.data.BookingEntity;
 import dev.playo.room.booking.data.BookingRepository;
 import dev.playo.room.building.data.BuildingRepository;
 import dev.playo.room.exception.GeneralProblemException;
@@ -138,13 +139,7 @@ public class RoomService {
     var room = this.findRoomById(roomId);
     return this.bookingRepository.findBookingByRoomAndDate(room, date)
       .stream()
-      .map(booking -> new Booking()
-        .id(booking.getId())
-        .roomId(booking.getRoom().getId())
-        .startTime(this.instantToOffsetDateTime(booking.getStartTime()))
-        .endTime(this.instantToOffsetDateTime(booking.getEndTime()))
-        .lecturerId(UUID.randomUUID())
-        .studentGroupId(UUID.randomUUID()))
+      .map(BookingEntity::toBookingDto)
       .toList();
   }
 
@@ -195,9 +190,5 @@ public class RoomService {
         }
       }
     };
-  }
-
-  private @NonNull OffsetDateTime instantToOffsetDateTime(@NonNull Instant instant) {
-    return OffsetDateTime.ofInstant(instant, ZoneId.systemDefault());
   }
 }

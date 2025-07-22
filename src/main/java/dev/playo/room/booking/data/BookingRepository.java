@@ -1,5 +1,6 @@
 package dev.playo.room.booking.data;
 
+import dev.playo.room.building.data.BuildingEntity;
 import dev.playo.room.room.data.RoomEntity;
 import java.time.LocalDate;
 import java.util.List;
@@ -17,4 +18,10 @@ public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
          AND (CAST(booking.startTime as date) = :date OR CAST(booking.endTime as date) = :date)
     """)
   List<BookingEntity> findBookingByRoomAndDate(@NonNull RoomEntity roomEntity, @NonNull LocalDate date);
+
+  @Query("""
+    SELECT booking FROM BookingEntity booking WHERE booking.room.building = :buildingEntity
+         AND (CAST(booking.startTime as date) = :date OR CAST(booking.endTime as date) = :date)
+    """)
+  List<BookingEntity> findBookingByBuildingAndDate(@NonNull BuildingEntity buildingEntity, @NonNull LocalDate date);
 }

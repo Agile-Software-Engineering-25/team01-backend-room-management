@@ -122,7 +122,38 @@ paths:
                   $ref: '#/components/schemas/Room'
         '404':
           description: Building not found
-
+  /buildings/{buildingId}/bookings:
+    get:
+      summary: Get all bookings for a building on a specific date
+      tags:
+        - Buildings
+      operationId: getBookingsForBuilding
+      parameters:
+        - name: buildingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the building
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: Date for which bookings are requested in ISO 8601 format (YYYY-MM-DD)
+      responses:
+        '200':
+          description: List of bookings for the specified building on the specified date.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAllBookingsResponse'
+        '400':
+          description: Invalid date format or past date.
+        '404':
+          description: Building not found.
   /rooms:
     get:
       summary: Get all known rooms
@@ -157,7 +188,7 @@ paths:
         '400':
           description: Room creation failed.
   /rooms/inquiry:
-    get:
+    post:
       summary: Find all rooms that are available for a booking
       tags:
         - Rooms

@@ -1,11 +1,15 @@
 package dev.playo.room.booking;
 
+import static dev.playo.room.util.DateTimeNormalizer.toInstant;
+
 import dev.playo.generated.roommanagement.model.Booking;
 import dev.playo.generated.roommanagement.model.RoomBookingRequest;
 import dev.playo.room.booking.data.BookingEntity;
 import dev.playo.room.booking.data.BookingRepository;
+import dev.playo.room.config.BusinessConfiguration;
 import dev.playo.room.exception.GeneralProblemException;
 import dev.playo.room.room.RoomService;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import lombok.NonNull;
@@ -19,19 +23,45 @@ public class BookingService {
 
   private final RoomService roomService;
   private final BookingRepository bookingRepository;
+  private final BusinessConfiguration businessConfiguration;
 
   @Autowired
-  public BookingService(RoomService roomService, BookingRepository bookingRepository) {
+  public BookingService(
+    @NonNull RoomService roomService,
+    @NonNull BookingRepository bookingRepository,
+    @NonNull BusinessConfiguration businessConfiguration
+  ) {
     this.roomService = roomService;
     this.bookingRepository = bookingRepository;
+    this.businessConfiguration = businessConfiguration;
   }
 
   public @NonNull Booking createBooking(@NonNull RoomBookingRequest request) {
+    //TODO: document
+    var startTime = request.getStartTime();
+    var endTime = request.getEndTime();
+    if (startTime.isBefore(endTime)) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST, "Start time must be before end time.");
+    }
+
+    // TODO: document
+    if (startTime.isEqual(endTime)) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST, "Cannot book a room without a duration.");
+    }
+
+    // TODO: document
+    var days = ChronoUnit.DAYS.between(startTime, endTime);
+    if (days > this.businessConfiguration.getMultiDayBookingMaxDays()) {
+      throw new GeneralProblemException(
+        HttpStatus.BAD_REQUEST,
+        "Cannot book a room for more than %d days.".formatted(this.businessConfiguration.getMultiDayBookingMaxDays()));
+    }
+
     var requestedRoom = this.roomService.findRoomById(request.getRoomId());
     var bookingEntity = new BookingEntity();
     bookingEntity.setRoom(requestedRoom);
-    bookingEntity.setStartTime(request.getStartTime().toInstant());
-    bookingEntity.setEndTime(request.getEndTime().toInstant());
+    bookingEntity.setStartTime(toInstant(request.getStartTime()));
+    bookingEntity.setEndTime(toInstant(request.getEndTime()));
 
     try {
       return this.bookingRepository.save(bookingEntity).toBookingDto();
