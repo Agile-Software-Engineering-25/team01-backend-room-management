@@ -14,10 +14,12 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.ToString;
 import org.hibernate.annotations.UuidGenerator;
 
 @Data
 @Entity
+@ToString
 @Table(name = "bookings")
 public class BookingEntity {
 

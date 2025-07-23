@@ -15,7 +15,10 @@ public class BusinessConfiguration {
   @Value("${room.booking.max-days:0}")
   private int multiDayBookingMaxDays;
 
-  @Value("${room.booking.early-booking:06:00:00}")
-  private LocalTime localTime;
+  @Value("${room.booking.early-limit:06:00:00}")
+  private LocalTime earlyBookingTime;
+
+  @Value("${room.booking.late-limit:22:00:00}")
+  private LocalTime lateBookingTime;
 
 }
