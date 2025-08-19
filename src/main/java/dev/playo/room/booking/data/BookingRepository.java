@@ -15,13 +15,13 @@ public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
 
   @Query("""
     SELECT booking FROM BookingEntity booking WHERE booking.room = :roomEntity
-         AND (CAST(booking.startTime as date) = :date OR CAST(booking.endTime as date) = :date)
+         AND :date BETWEEN CAST(booking.startTime as date) AND CAST(booking.endTime as date)
     """)
   List<BookingEntity> findBookingByRoomAndDate(@NonNull RoomEntity roomEntity, @NonNull LocalDate date);
 
   @Query("""
     SELECT booking FROM BookingEntity booking WHERE booking.room.building = :buildingEntity
-         AND (CAST(booking.startTime as date) = :date OR CAST(booking.endTime as date) = :date)
+         AND :date BETWEEN CAST(booking.startTime as date) AND CAST(booking.endTime as date)
     """)
   List<BookingEntity> findBookingByBuildingAndDate(@NonNull BuildingEntity buildingEntity, @NonNull LocalDate date);
 }

@@ -16,5 +16,4 @@ public class RoomManagementApplication {
   void started() {
     TimeZone.setDefault(TimeZone.getTimeZone("Europe/Berlin"));
   }
-
 }
