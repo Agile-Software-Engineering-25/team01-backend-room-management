@@ -11,6 +11,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Data;
 import lombok.NonNull;
@@ -33,6 +35,12 @@ public class BookingEntity {
   @Column(nullable = false)
   private Instant endTime;
 
+  @Column(nullable = false)
+  private Set<UUID> lecturerIds = new HashSet<>();
+
+  @Column(nullable = false)
+  private Set<UUID> studentGroupIds = new HashSet<>();
+
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   private RoomEntity room;
 
@@ -42,7 +50,7 @@ public class BookingEntity {
       .roomId(this.room.getId())
       .startTime(DateTimeNormalizer.fromInstant(this.startTime))
       .endTime(DateTimeNormalizer.fromInstant(this.endTime))
-      .lecturerId(UUID.randomUUID())
-      .studentGroupId(UUID.randomUUID());
+      .lecturerIds(this.lecturerIds)
+      .studentGroupIds(this.studentGroupIds);
   }
 }

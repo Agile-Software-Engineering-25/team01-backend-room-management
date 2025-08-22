@@ -49,7 +49,7 @@ public class BookingService {
     //TODO: document
     var startTime = toLocalDateTime(request.getStartTime());
     var endTime = toLocalDateTime(request.getEndTime());
-    if (startTime.isBefore(endTime)) {
+    if (startTime.isAfter(endTime)) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST, "Start time must be before end time.");
     }
 
@@ -78,11 +78,14 @@ public class BookingService {
         "Cannot book a room after %s.".formatted(this.businessConfiguration.getLateBookingTime()));
     }
 
+    //TODO: needs to check if the student group ids fit into the room, but service / api not existing yet
     var requestedRoom = this.roomService.findRoomById(request.getRoomId());
     var bookingEntity = new BookingEntity();
     bookingEntity.setRoom(requestedRoom);
     bookingEntity.setStartTime(toInstant(request.getStartTime()));
     bookingEntity.setEndTime(toInstant(request.getEndTime()));
+    bookingEntity.setLecturerIds(request.getLecturerIds());
+    bookingEntity.setStudentGroupIds(request.getStudentGroupIds());
 
     log.info(
       "Entering booking creation for room {} from {} to {}",

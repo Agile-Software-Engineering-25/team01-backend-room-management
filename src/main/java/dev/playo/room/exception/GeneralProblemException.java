@@ -15,6 +15,7 @@ public class GeneralProblemException extends RuntimeException {
   private final String description;
 
   public GeneralProblemException(@Nonnull HttpStatus status, @Nonnull String description) {
+    super(description);
     this.status = status;
     this.description = description;
   }
