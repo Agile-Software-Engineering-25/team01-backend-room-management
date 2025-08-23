@@ -524,7 +524,7 @@ components:
       properties:
         type:
           type: string
-          enum:
+          x-enum-varnames:
             - PROJECTOR
             - TELEVISION
             - SEATS
