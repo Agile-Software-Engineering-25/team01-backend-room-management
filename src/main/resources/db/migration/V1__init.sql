@@ -21,10 +21,12 @@ create table rooms
 
 create table bookings
 (
-  id         uuid                        not null primary key,
-  end_time   timestamp(6) with time zone not null,
-  start_time timestamp(6) with time zone not null,
-  room_id    uuid                        not null
+  id                uuid                        not null primary key,
+  end_time          timestamp(6) with time zone not null,
+  start_time        timestamp(6) with time zone not null,
+  lecturer_ids      UUID[],
+  student_group_ids UUID[],
+  room_id           uuid                        not null
     constraint fk_bookings_on_rooms references rooms (id),
   exclude using gist (room_id WITH =, tstzrange(start_time, end_time, '[)') WITH &&)
 );

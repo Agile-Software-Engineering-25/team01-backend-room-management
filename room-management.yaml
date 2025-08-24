@@ -524,7 +524,7 @@ components:
       properties:
         type:
           type: string
-          enum:
+          x-enum-varnames:
             - PROJECTOR
             - TELEVISION
             - SEATS
@@ -578,12 +578,21 @@ components:
         roomId:
           type: string
           format: uuid
-        lecturerId:
-          type: string
-          format: uuid
-        studentGroupId:
-          type: string
-          format: uuid
+        lecturerIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        studentGroupIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        groupSize:
+          type: integer
+          minimum: 1
         startTime:
           type: string
           format: date-time
@@ -592,10 +601,10 @@ components:
           format: date-time
       required:
         - roomId
-        - lecturerId
-        - studentGroupId
         - startTime
         - endTime
+        - lecturerIds
+        - studentGroupIds
     GetAllRoomsResponse:
       type: object
       properties:
@@ -629,12 +638,18 @@ components:
         roomId:
           type: string
           format: uuid
-        lecturerId:
-          type: string
-          format: uuid
-        studentGroupId:
-          type: string
-          format: uuid
+        lecturerIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        studentGroupIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
         startTime:
           type: string
           format: date-time
@@ -644,7 +659,7 @@ components:
       required:
         - id
         - roomId
-        - lecturerId
-        - studentGroupId
         - startTime
         - endTime
+        - studentGroupIds
+        - lecturerIds

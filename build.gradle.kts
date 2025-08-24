@@ -14,6 +14,10 @@ java {
   }
 }
 
+tasks.withType<JavaCompile> {
+  dependsOn("openApiGenerate")
+}
+
 openApiGenerate {
   validateSpec.set(false)
   generatorName.set("spring")
