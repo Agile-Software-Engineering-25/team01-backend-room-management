@@ -13,6 +13,7 @@ import dev.playo.room.building.BuildingService;
 import dev.playo.room.exception.GeneralProblemException;
 import dev.playo.room.integration.TestCleaner;
 import dev.playo.room.room.RoomService;
+import dev.playo.room.util.Characteristics;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -57,7 +58,7 @@ class BookingServiceTest {
     roomRequest.setName("Test Room");
     roomRequest.setBuildingId(building.getId());
     var seatsCharacteristic = new Characteristic();
-    seatsCharacteristic.setType(Characteristic.TypeEnum.SEATS);
+    seatsCharacteristic.setType(Characteristics.SEATS_CHARACTERISTIC);
     seatsCharacteristic.setValue(10);
     roomRequest.setCharacteristics(List.of(seatsCharacteristic));
 
@@ -93,7 +94,7 @@ class BookingServiceTest {
     roomRequest.setName("Test Room");
     roomRequest.setBuildingId(building.getId());
     var seatsCharacteristic = new Characteristic();
-    seatsCharacteristic.setType(Characteristic.TypeEnum.SEATS);
+    seatsCharacteristic.setType(Characteristics.SEATS_CHARACTERISTIC);
     seatsCharacteristic.setValue(10);
     roomRequest.setCharacteristics(List.of(seatsCharacteristic));
 
