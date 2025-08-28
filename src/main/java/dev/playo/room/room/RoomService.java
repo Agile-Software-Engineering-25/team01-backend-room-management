@@ -13,10 +13,7 @@ import dev.playo.room.room.data.RoomEntity;
 import dev.playo.room.room.data.RoomRepository;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +105,7 @@ public class RoomService {
 
         sql.append(")");
 
-        parameters.put(typeParam, characteristic.getType().name());
+        parameters.put(typeParam, characteristic.getType());
         parameters.put(valueParam, value);
         index++;
       }
