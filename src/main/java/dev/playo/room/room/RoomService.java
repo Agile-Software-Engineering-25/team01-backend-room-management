@@ -7,6 +7,7 @@ import dev.playo.generated.roommanagement.model.RoomInquiry;
 import dev.playo.generated.roommanagement.model.SearchCharacteristic;
 import dev.playo.room.booking.data.BookingEntity;
 import dev.playo.room.booking.data.BookingRepository;
+import dev.playo.room.building.data.BuildingEntity;
 import dev.playo.room.building.data.BuildingRepository;
 import dev.playo.room.exception.GeneralProblemException;
 import dev.playo.room.room.data.RoomEntity;
@@ -18,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import jakarta.persistence.EntityNotFoundException;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -142,15 +145,28 @@ public class RoomService {
 
   public @NonNull Room updateRoom(@NonNull UUID roomId, @NonNull RoomCreateRequest room) {
     var existingRoom = this.findRoomById(roomId);
+
+    // String name
     var lowerCaseName = room.getName().toLowerCase();
-    if (!existingRoom.getName().equals(lowerCaseName) && this.repository.existsByName(lowerCaseName)) {
+    if (!existingRoom.getName().equals(lowerCaseName) && this.repository.existsByName(lowerCaseName)) { // If name changes throws exception when new name already exists
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Room with name %s already exists".formatted(lowerCaseName));
     }
-
     existingRoom.setName(lowerCaseName);
-    // TODO: might need to validate building existence
-    existingRoom.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
+
+    // UUID buildingId
+    BuildingEntity building;
+    try {
+      building = this.buildingRepository.getReferenceById(room.getBuildingId()); // Throws EntityNotFoundException when there is no room with room.getBuildingId()
+    } catch (EntityNotFoundException e) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Building with ID %s doesn't exists".formatted(room.getBuildingId().toString()));
+    }
+    existingRoom.setBuilding(building);
+
+    // List<@Valid Characteristic> characteristics
+    existingRoom.setCharacteristics(room.getCharacteristics());
+
     var updatedRoom = this.repository.save(existingRoom);
     return updatedRoom.toRoomDto();
   }
