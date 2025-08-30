@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import dev.playo.generated.roommanagement.model.Booking;
+import dev.playo.generated.roommanagement.model.Characteristic;
 import dev.playo.generated.roommanagement.model.RoomBookingRequest;
 import dev.playo.room.booking.BookingService;
 import dev.playo.room.booking.data.BookingEntity;
@@ -18,6 +19,7 @@ import dev.playo.room.config.BusinessConfiguration;
 import dev.playo.room.exception.GeneralProblemException;
 import dev.playo.room.room.RoomService;
 import dev.playo.room.room.data.RoomEntity;
+import dev.playo.room.util.Characteristics;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
@@ -65,8 +67,13 @@ class BookingServiceTest {
     request.setLecturerIds(Set.of(UUID.randomUUID()));
     request.setStudentGroupIds(Set.of(UUID.randomUUID()));
 
+    var seatsCharacteristic = new Characteristic();
+    seatsCharacteristic.setType(Characteristics.SEATS_CHARACTERISTIC);
+    seatsCharacteristic.setValue(10);
+
     var room = mock(RoomEntity.class);
     when(room.getName()).thenReturn("Raum 1");
+    when(room.getCharacteristics()).thenReturn(List.of(seatsCharacteristic));
     when(roomService.findRoomById(request.getRoomId())).thenReturn(room);
 
     var bookingEntity = mock(BookingEntity.class);
@@ -155,8 +162,13 @@ class BookingServiceTest {
     request.setLecturerIds(Set.of(UUID.randomUUID()));
     request.setStudentGroupIds(Set.of(UUID.randomUUID()));
 
+    var seatsCharacteristic = new Characteristic();
+    seatsCharacteristic.setType(Characteristics.SEATS_CHARACTERISTIC);
+    seatsCharacteristic.setValue(10);
+
     var room = mock(RoomEntity.class);
     when(room.getName()).thenReturn("Raum 1");
+    when(room.getCharacteristics()).thenReturn(List.of(seatsCharacteristic));
     when(this.roomService.findRoomById(request.getRoomId())).thenReturn(room);
 
     when(this.bookingRepository.save(any())).thenThrow(new DataIntegrityViolationException("overlap"));

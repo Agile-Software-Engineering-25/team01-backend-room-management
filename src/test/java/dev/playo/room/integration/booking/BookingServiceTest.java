@@ -8,6 +8,7 @@ import dev.playo.generated.roommanagement.model.BuildingState;
 import dev.playo.generated.roommanagement.model.Characteristic;
 import dev.playo.generated.roommanagement.model.RoomBookingRequest;
 import dev.playo.generated.roommanagement.model.RoomCreateRequest;
+import dev.playo.room.AbstractPostgresContainerTest;
 import dev.playo.room.booking.BookingService;
 import dev.playo.room.building.BuildingService;
 import dev.playo.room.exception.GeneralProblemException;
@@ -26,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BookingServiceTest {
+class BookingServiceTest extends AbstractPostgresContainerTest {
 
   @Autowired
   private BookingService bookingService;
