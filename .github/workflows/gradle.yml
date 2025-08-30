@@ -8,6 +8,9 @@ on:
 concurrency:
   cancel-in-progress: true
   group: build-${{ github.event.pull_request.number || github.ref }}
+permissions:
+  checks: write
+  pull-requests: write
 
 jobs:
   build:
