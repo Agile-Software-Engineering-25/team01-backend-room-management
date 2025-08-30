@@ -69,6 +69,19 @@ dependencies {
   annotationProcessor("org.projectlombok:lombok")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testImplementation("org.testcontainers:postgresql:1.19.8")
+  testImplementation("org.testcontainers:junit-jupiter:1.19.8")
+}
+
+tasks.withType<Test> {
+  doFirst {
+    if (System.getProperty("jdk.module.illegalAccess") == null) {
+      jvmArgs("--illegal-access=permit")
+    }
+  }
+
+  // Stellt sicher, dass der Mockito-Agent als Java Agent geladen wird.
+  jvmArgs("-javaagent:${classpath.find { it.name.contains("byte-buddy-agent") }?.absolutePath}")
 }
 
 tasks.withType<Test> {

@@ -108,7 +108,7 @@ public class RoomService {
 
         sql.append(")");
 
-        parameters.put(typeParam, characteristic.getType().name());
+        parameters.put(typeParam, characteristic.getType());
         parameters.put(valueParam, value);
         index++;
       }
