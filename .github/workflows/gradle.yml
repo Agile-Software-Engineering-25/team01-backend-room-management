@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  cancel-in-progress: true
+  group: build-${{ github.event.pull_request.number || github.ref }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build and test
+
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        name: Build and publish
+
+        steps:
+          - name: Checkout repository
+            uses: actions/checkout@v5
+
+          - name: Setup java
+            uses: actions/setup-java@v5
+            with:
+              java-version: 24
+              check-latest: true
+              distribution: 'zulu'
+
+          - name: Setup Gradle
+            uses: gradle/actions/setup-gradle@v4
+            with:
+              add-job-summary: always
+              cache-cleanup: on-success
+              cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+
+          - name: Execute build and tests
+            run: ./gradlew build test --stacktrace
+
+          - name: Publish test summary
+            if: ${{ always() }}
+            uses: EnricoMi/publish-unit-test-result-action@v2
+            with:
+              files: "**/build/test-results/test/TEST-*.xml"
+              comment_mode: ${{ github.event_name == 'pull_request' && 'always' || 'off' }}
