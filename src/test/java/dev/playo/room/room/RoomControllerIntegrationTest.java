@@ -2,6 +2,8 @@ package dev.playo.room.room;
 
 import dev.playo.room.AbstractPostgresContainerTest;
 import dev.playo.room.TestUtils;
+import dev.playo.room.booking.data.BookingEntity;
+import dev.playo.room.booking.data.BookingRepository;
 import dev.playo.room.building.data.BuildingRepository;
 import dev.playo.room.room.data.RoomEntity;
 import dev.playo.room.room.data.RoomRepository;
@@ -32,10 +34,14 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
   @Autowired
   private BuildingRepository buildingRepository;
 
+  @Autowired
+  private BookingRepository bookingRepository;
+
   @BeforeEach
   void clearDatabase() {
     roomRepository.deleteAll();
     buildingRepository.deleteAll();
+    bookingRepository.deleteAll();
   }
 
   @Test
@@ -67,5 +73,26 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     mockMvc.perform(delete("/rooms/{id}", invalidId)
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void deleteBookedRoom() throws Exception {
+    RoomEntity room = TestUtils.createTestRoom(buildingRepository);
+    roomRepository.save(room);
+
+    BookingEntity bookingEntity = TestUtils.createTestBooking(room);
+    bookingRepository.save(bookingEntity);
+
+    RoomEntity bookedRoom = bookingEntity.getRoom();
+
+    mockMvc.perform(delete("/rooms/{id}", bookedRoom.getId())
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isBadRequest());
+
+    Optional<RoomEntity> deletedRoom = roomRepository.findById(bookedRoom.getId());
+    Optional<BookingEntity> booking = bookingRepository.findById(bookingEntity.getId());
+
+    assertThat(deletedRoom).isNotEmpty();
+    assertThat(booking).isNotEmpty();
   }
 }

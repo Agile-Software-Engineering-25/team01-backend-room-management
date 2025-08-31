@@ -24,4 +24,10 @@ public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
          AND :date BETWEEN CAST(booking.startTime as date) AND CAST(booking.endTime as date)
     """)
   List<BookingEntity> findBookingByBuildingAndDate(@NonNull BuildingEntity buildingEntity, @NonNull LocalDate date);
+
+  @Query("""
+    SELECT CASE WHEN COUNT(booking) > 0 THEN true ELSE false END FROM BookingEntity booking 
+    WHERE booking.room = :roomEntity AND booking.endTime > CURRENT_TIMESTAMP
+    """)
+  boolean existsCurrentOrFutureBookingForRoom(@NonNull RoomEntity roomEntity);
 }

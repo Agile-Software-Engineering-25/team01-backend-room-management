@@ -19,10 +19,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class RoomService {
 
@@ -140,6 +143,11 @@ public class RoomService {
       .toList();
   }
 
+  public boolean bookingExistsForRoom(@NonNull UUID roomId) {
+    var room = this.findRoomById(roomId);
+    return this.bookingRepository.existsCurrentOrFutureBookingForRoom(room);
+  }
+
   public @NonNull Room updateRoom(@NonNull UUID roomId, @NonNull RoomCreateRequest room) {
     var existingRoom = this.findRoomById(roomId);
     var lowerCaseName = room.getName().toLowerCase();
@@ -156,8 +164,22 @@ public class RoomService {
   }
 
   public void deleteRoomById(@NonNull UUID roomId) {
-    var room = this.findRoomById(roomId);
-    this.repository.delete(room);
+      var room = this.findRoomById(roomId);
+      boolean bookingExists = bookingExistsForRoom(roomId);
+      if (bookingExists) {
+        throw new GeneralProblemException(
+          HttpStatus.BAD_REQUEST,
+          "Room with name %s is booked and cannot be deleted".formatted(room.getName()));
+      }
+
+      try {
+        this.repository.delete(room);
+      } catch (DataIntegrityViolationException exception) {
+        log.trace("Data integrity violation while deleting booked room: {}", exception.getMessage());
+        throw new GeneralProblemException(
+          HttpStatus.BAD_REQUEST,
+          "Room with name %s could not be deleted because it is booked.".formatted(room.getName()));
+      }
   }
 
   private @NonNull String operatorForCharacteristic(
