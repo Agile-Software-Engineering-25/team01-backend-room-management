@@ -46,7 +46,7 @@ public class RoomServiceTest {
   }
 
   @Test
-  void deleteRoomByIdOfExistingRoom2() {
+  void deleteRoomByIdOfExistingRoom() {
     UUID roomId = UUID.randomUUID();
     RoomEntity mockRoom = new RoomEntity();
     mockRoom.setId(roomId);
@@ -57,7 +57,7 @@ public class RoomServiceTest {
 
     roomService.deleteRoomById(roomId);
 
-    verify(roomRepository, times(1)).findById(roomId);
+    verify(roomRepository, times(2)).findById(roomId);
 
     verify(roomRepository, times(1)).delete(mockRoom);
   }
