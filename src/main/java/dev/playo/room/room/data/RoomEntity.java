@@ -29,6 +29,8 @@ public class RoomEntity {
 
   private String name;
 
+  private String chemSymbol;
+
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   private BuildingEntity building;
 

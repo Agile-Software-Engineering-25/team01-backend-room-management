@@ -55,9 +55,20 @@ public class RoomService {
         "Room with name %s already exists".formatted(lowerCaseName));
     }
 
+    var lowerCaseChemSymbol = room.getChemSymbol().toLowerCase();
+    if (this.repository.existsByChemSymbol(lowerCaseChemSymbol)) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Room with chemSymbol %s already exists".formatted(lowerCaseChemSymbol));
+    }
+
+    if (!buildingRepository.existsById(room.getBuildingId())) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Building with ID %s does not exist".formatted(room.getBuildingId()));
+    }
+
     var roomEntity = new RoomEntity();
     roomEntity.setName(lowerCaseName);
-    //TODO: might need to validate building existence
+    roomEntity.setChemSymbol(lowerCaseChemSymbol);
     roomEntity.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
     roomEntity.setCharacteristics(room.getCharacteristics());
     var savedRoom = this.repository.save(roomEntity);
@@ -147,13 +158,22 @@ public class RoomService {
   public @NonNull Room updateRoom(@NonNull UUID roomId, @NonNull RoomCreateRequest room) {
     var existingRoom = this.findRoomById(roomId);
     var lowerCaseName = room.getName().toLowerCase();
+    var lowerCaseChemSymbol = room.getChemSymbol().toLowerCase();
     if (!existingRoom.getName().equals(lowerCaseName) && this.repository.existsByName(lowerCaseName)) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Room with name %s already exists".formatted(lowerCaseName));
     }
+    if (!existingRoom.getChemSymbol().equals(lowerCaseChemSymbol) && this.repository.existsByChemSymbol(lowerCaseChemSymbol)) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Room with chemSymbol %s already exists".formatted(lowerCaseChemSymbol));
+    }
+    if (!buildingRepository.existsById(room.getBuildingId())) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Building with ID %s does not exist".formatted(room.getBuildingId()));
+    }
 
     existingRoom.setName(lowerCaseName);
-    // TODO: might need to validate building existence
+    existingRoom.setChemSymbol(lowerCaseChemSymbol);
     existingRoom.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
     var updatedRoom = this.repository.save(existingRoom);
     return updatedRoom.toRoomDto();
