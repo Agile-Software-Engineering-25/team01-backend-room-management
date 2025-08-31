@@ -143,8 +143,7 @@ public class RoomService {
       .toList();
   }
 
-  public boolean bookingExistsForRoom(@NonNull UUID roomId) {
-    var room = this.findRoomById(roomId);
+  public boolean bookingExistsForRoom(@NonNull RoomEntity room) {
     return this.bookingRepository.existsCurrentOrFutureBookingForRoom(room);
   }
 
@@ -165,7 +164,7 @@ public class RoomService {
 
   public void deleteRoomById(@NonNull UUID roomId) {
       var room = this.findRoomById(roomId);
-      boolean bookingExists = bookingExistsForRoom(roomId);
+      boolean bookingExists = bookingExistsForRoom(room);
       if (bookingExists) {
         throw new GeneralProblemException(
           HttpStatus.BAD_REQUEST,

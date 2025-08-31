@@ -57,7 +57,7 @@ public class RoomServiceTest {
 
     roomService.deleteRoomById(roomId);
 
-    verify(roomRepository, times(2)).findById(roomId);
+    verify(roomRepository, times(1)).findById(roomId);
 
     verify(roomRepository, times(1)).delete(mockRoom);
   }
