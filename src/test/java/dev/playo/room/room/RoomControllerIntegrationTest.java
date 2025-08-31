@@ -1,9 +1,9 @@
 package dev.playo.room.room;
 
-import dev.playo.generated.roommanagement.model.BuildingState;
-import dev.playo.generated.roommanagement.model.Characteristic;
 import dev.playo.room.AbstractPostgresContainerTest;
-import dev.playo.room.building.data.BuildingEntity;
+import dev.playo.room.TestUtils;
+import dev.playo.room.booking.data.BookingEntity;
+import dev.playo.room.booking.data.BookingRepository;
 import dev.playo.room.building.data.BuildingRepository;
 import dev.playo.room.room.data.RoomEntity;
 import dev.playo.room.room.data.RoomRepository;
@@ -15,10 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -45,26 +42,21 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
 
   @Test
   void shouldDeleteExistingRoom() throws Exception {
-    // Given
-    RoomEntity room = createTestRoom();
+    RoomEntity room = TestUtils.createTestRoom(buildingRepository);
     roomRepository.save(room);
 
-    // When
     mockMvc.perform(delete("/rooms/{id}", room.getId())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isNoContent());
 
-    // Then: Check if the room is truly gone from the database
     Optional<RoomEntity> deletedRoom = roomRepository.findById(room.getId());
     assertThat(deletedRoom).isEmpty();
   }
 
   @Test
   void shouldReturn404WhenDeletingNonExistingRoom() throws Exception {
-    // Given
     UUID id = UUID.randomUUID();
 
-    // When/Then
     mockMvc.perform(delete("/rooms/{id}", id)
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isNotFound());
@@ -72,10 +64,8 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
 
   @Test
   void shouldReturn400WhenDeletingRoomWithInvalidId() throws Exception {
-    // Given: An invalid UUID string
     String invalidId = "invalid-uuid";
 
-    // When/Then
     mockMvc.perform(delete("/rooms/{id}", invalidId)
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isBadRequest());

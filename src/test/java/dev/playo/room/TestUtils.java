@@ -1,0 +1,63 @@
+package dev.playo.room;
+
+import dev.playo.generated.roommanagement.model.BuildingState;
+import dev.playo.generated.roommanagement.model.Characteristic;
+import dev.playo.room.booking.data.BookingEntity;
+import dev.playo.room.building.data.BuildingEntity;
+import dev.playo.room.building.data.BuildingRepository;
+import dev.playo.room.room.data.RoomEntity;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
+public final class TestUtils {
+
+  private TestUtils(){}
+
+  public static RoomEntity createTestRoom(BuildingRepository buildingRepository){
+    BuildingEntity buildingEntity = createTestBuilding();
+    BuildingEntity savedBuilding = buildingRepository.save(buildingEntity);
+
+    List<Characteristic> characteristics = new ArrayList<>();
+    characteristics.add(new Characteristic("Whiteboard", 1));
+    characteristics.add(new Characteristic("Projector", 1));
+
+    RoomEntity room = new RoomEntity();
+    room.setName("TestRoom");
+    room.setBuilding(savedBuilding);
+    room.setCharacteristics(characteristics);
+
+    return room;
+  }
+
+  public static BuildingEntity createTestBuilding(){
+    BuildingEntity buildingEntity = new BuildingEntity();
+
+    buildingEntity.setName("testBuilding");
+    buildingEntity.setDescription("testBuildingDescription");
+    buildingEntity.setAddress("testBuildingAddress");
+    buildingEntity.setState(BuildingState.OPEN);
+
+    return buildingEntity;
+  }
+
+  public static BookingEntity createTestBooking(RoomEntity room){
+    Set<UUID> lecturerIds = new HashSet<>();
+    lecturerIds.add(UUID.randomUUID());
+    Set<UUID> studentGroupIds = new HashSet<>();
+    studentGroupIds.add(UUID.randomUUID());
+
+    Instant currentStart = Instant.now();
+    Instant currentEnd = currentStart.plus(1, ChronoUnit.HOURS);
+
+    BookingEntity bookingEntity = new BookingEntity();
+    bookingEntity.setRoom(room);
+    bookingEntity.setStartTime(currentStart);
+    bookingEntity.setEndTime(currentEnd);
+    bookingEntity.setLecturerIds(lecturerIds);
+    bookingEntity.setStudentGroupIds(studentGroupIds);
+
+    return bookingEntity;
+  }
+}
