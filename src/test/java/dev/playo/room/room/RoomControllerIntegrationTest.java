@@ -83,16 +83,22 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     BookingEntity bookingEntity = TestUtils.createTestBooking(room);
     bookingRepository.save(bookingEntity);
 
-    RoomEntity bookedRoom = bookingEntity.getRoom();
-
-    mockMvc.perform(delete("/rooms/{id}", bookedRoom.getId())
+    mockMvc.perform(delete("/rooms/{id}", room.getId())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isBadRequest());
 
-    Optional<RoomEntity> deletedRoom = roomRepository.findById(bookedRoom.getId());
+    Optional<RoomEntity> deletedRoom = roomRepository.findById(room.getId());
     Optional<BookingEntity> booking = bookingRepository.findById(bookingEntity.getId());
 
     assertThat(deletedRoom).isNotEmpty();
     assertThat(booking).isNotEmpty();
+
+    mockMvc.perform(delete("/rooms/{id}", room.getId())
+        .queryParam("force", "true")
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().is2xxSuccessful());
+
+    assertThat(roomRepository.findById(room.getId())).isEmpty();
+    assertThat(bookingRepository.findById(bookingEntity.getId())).isEmpty();
   }
 }

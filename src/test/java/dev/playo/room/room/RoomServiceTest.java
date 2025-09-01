@@ -41,7 +41,7 @@ public class RoomServiceTest {
   void deleteRoomWithNonExistingId() {
     UUID id = UUID.randomUUID();
 
-    assertThrows(GeneralProblemException.class, () -> roomService.deleteRoomById(id));
+    assertThrows(GeneralProblemException.class, () -> roomService.deleteRoomById(id, false));
     verify(roomRepository, never()).deleteById(any());
   }
 
@@ -55,7 +55,7 @@ public class RoomServiceTest {
 
     doNothing().when(roomRepository).delete(mockRoom);
 
-    roomService.deleteRoomById(roomId);
+    roomService.deleteRoomById(roomId, false);
 
     verify(roomRepository, times(1)).findById(roomId);
 

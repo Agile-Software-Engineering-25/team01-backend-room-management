@@ -32,8 +32,8 @@ public class RoomController implements RoomsApi {
   }
 
   @Override
-  public ResponseEntity<Void> deleteRoomById(UUID roomId) {
-    this.roomService.deleteRoomById(roomId);
+  public ResponseEntity<Void> deleteRoomById(UUID roomId, Boolean forceDelete) {
+    this.roomService.deleteRoomById(roomId, forceDelete);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 

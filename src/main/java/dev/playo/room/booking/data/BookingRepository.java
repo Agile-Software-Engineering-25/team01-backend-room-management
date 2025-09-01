@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -30,4 +31,13 @@ public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
     WHERE booking.room = :roomEntity AND booking.endTime > CURRENT_TIMESTAMP
     """)
   boolean existsCurrentOrFutureBookingForRoom(@NonNull RoomEntity roomEntity);
+
+  @Modifying
+  @Query("DELETE FROM BookingEntity booking WHERE booking.room = :roomEntity")
+  void deleteAllByRoom(@NonNull RoomEntity roomEntity);
+
+  @Modifying
+  @Query("DELETE FROM BookingEntity booking WHERE booking.endTime < CURRENT_TIMESTAMP")
+  void deleteAllOutdatedBookings();
 }
+

@@ -281,6 +281,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: force
+          in: query
+          required: false
+          description: Whether to force deletion even if the room has bookings assigned.
+          schema:
+            type: boolean
+            default: false
       responses:
         '204':
           description: Room deleted successfully.
