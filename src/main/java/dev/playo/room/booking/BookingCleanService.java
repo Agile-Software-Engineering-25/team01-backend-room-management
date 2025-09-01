@@ -15,7 +15,7 @@ public final class BookingCleanService {
     this.bookingRepository = bookingRepository;
   }
 
-  @Scheduled(cron = "${room.booking.clean-cron:0 * * * * *}")
+  @Scheduled(cron = "${room.booking.clean-cron:0 1/5 * * * *}")
   public void cleanOutdatedBookings() {
     this.bookingRepository.deleteAllOutdatedBookings();
   }

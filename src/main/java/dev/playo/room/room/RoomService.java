@@ -163,9 +163,7 @@ public class RoomService {
   public void deleteRoomById(@NonNull UUID roomId, boolean forceDelete) {
     var room = this.findRoomById(roomId);
     if (forceDelete) {
-      log.debug("Force deleting room with id {}", roomId);
-      this.bookingRepository.deleteAllByRoom(room);
-      this.repository.delete(room);
+      this.forceDeleteRoom(room);
       return;
     }
 
@@ -184,6 +182,12 @@ public class RoomService {
         HttpStatus.BAD_REQUEST,
         "Room with name %s could not be deleted because it is booked.".formatted(room.getName()));
     }
+  }
+
+  private void forceDeleteRoom(@NonNull RoomEntity roomEntity) {
+    log.debug("Running force deletion of room {}", roomEntity.getId());
+    this.bookingRepository.deleteAllByRoom(roomEntity);
+    this.repository.delete(roomEntity);
   }
 
   private @NonNull String operatorForCharacteristic(
