@@ -3,6 +3,7 @@ package dev.playo.room.room;
 import dev.playo.generated.roommanagement.api.RoomsApi;
 import dev.playo.generated.roommanagement.model.GetAllBookingsResponse;
 import dev.playo.generated.roommanagement.model.GetAllRoomsResponse;
+import dev.playo.generated.roommanagement.model.IsRoomDeletable200Response;
 import dev.playo.generated.roommanagement.model.Room;
 import dev.playo.generated.roommanagement.model.RoomCreateRequest;
 import dev.playo.generated.roommanagement.model.RoomInquiry;
@@ -33,7 +34,7 @@ public class RoomController implements RoomsApi {
 
   @Override
   public ResponseEntity<Void> deleteRoomById(UUID roomId, Boolean forceDelete) {
-    this.roomService.deleteRoomById(roomId, forceDelete);
+    this.roomService.deleteRoomById(roomId, forceDelete == true);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
@@ -57,6 +58,11 @@ public class RoomController implements RoomsApi {
   @Override
   public ResponseEntity<GetAllRoomsResponse> getRooms() {
     return ResponseEntity.ok(new GetAllRoomsResponse(this.roomService.allKnownRooms()));
+  }
+
+  @Override
+  public ResponseEntity<IsRoomDeletable200Response> isRoomDeletable(UUID roomId) {
+    return ResponseEntity.ok(new IsRoomDeletable200Response(this.roomService.deletableRoom(roomId)));
   }
 
   @Override

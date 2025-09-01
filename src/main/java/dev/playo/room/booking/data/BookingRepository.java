@@ -38,6 +38,6 @@ public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
 
   @Modifying
   @Query("DELETE FROM BookingEntity booking WHERE booking.endTime < CURRENT_TIMESTAMP")
-  void deleteAllOutdatedBookings();
+  int deleteAllOutdatedBookings();
 }
 

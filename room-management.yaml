@@ -295,6 +295,34 @@ paths:
           description: The room has bookings assigned and cannot be deleted.
         '404':
           description: Room not found.
+  /rooms/{roomId}/deletable:
+    get:
+      summary: Checks whether a room can be deleted without force deleting.
+      tags:
+        - Rooms
+      operationId: isRoomDeletable
+      parameters:
+        - name: roomId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: The unique identifier of the room (UUID v7).
+      responses:
+        '200':
+          description: Response whether the room can be deleted without forcing (no bookings assigned).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deletable:
+                    type: boolean
+                required:
+                  - deletable
+        '404':
+          description: Room not found.
   /rooms/{roomId}/bookings:
     get:
       summary: Get all bookings for a specific room on a specific date

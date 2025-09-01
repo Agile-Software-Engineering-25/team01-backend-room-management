@@ -159,6 +159,11 @@ public class RoomService {
     return updatedRoom.toRoomDto();
   }
 
+  public boolean deletableRoom(@NonNull UUID roomId) {
+    var room = this.findRoomById(roomId);
+    return !this.bookingRepository.existsCurrentOrFutureBookingForRoom(room);
+  }
+
   @Transactional
   public void deleteRoomById(@NonNull UUID roomId, boolean forceDelete) {
     var room = this.findRoomById(roomId);

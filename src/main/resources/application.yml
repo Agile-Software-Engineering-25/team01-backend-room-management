@@ -11,3 +11,11 @@ spring:
       hibernate:
         generate_statistics: true
         show_sql: true
+  threads:
+    virtual:
+      enabled: true
+logging:
+  level:
+    dev:
+      playo:
+        room: DEBUG
