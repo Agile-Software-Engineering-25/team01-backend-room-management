@@ -1,0 +1,20 @@
+name: deploy-to-k8s
+
+on:
+  push:
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: Upload image
+        uses: Agile-Software-Engineering-25/build-and-publish-image@v1
+
+      - name: Deploy to Namespace
+        uses: Agile-Software-Engineering-25/deploy-to-k8s@v1
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+          namespace: ${{ vars.K8S_NAMESPACE }}

@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: room-mgmt
+  namespace: ase-1
+  labels:
+    app.kubernetes.io/name: room-mgmt
+    app.kubernetes.io/instance: room-mgmt
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: room-mgmt
+      app.kubernetes.io/instance: room-mgmt
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: room-mgmt
+        app.kubernetes.io/instance: room-mgmt
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      imagePullSecrets:
+        - name: GHCR_READ             # e.g. ghrc-secret for GHCR
+      containers:
+        - name: app
+          image: ghcr.io/agile-software-engineering-25/team01-backend-room-management
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: SERVER_SERVLET_CONTEXT_PATH
+              value: "/ase-1"                # App will live under /<team>
+
+            # Tell Spring to respect X-Forwarded-* from Traefik
+            - name: SERVER_FORWARD_HEADERS_STRATEGY
+              value: "framework"
+
+            # Reasonable JVM sizing for containers (tune per app)
+            - name: JAVA_TOOL_OPTIONS
+              value: ""
+
+            # Expose only necessary actuator endpoints; prometheus requires micrometer-registry-prometheus
+            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+              value: "health,prometheus"
+            - name: MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED
+              value: "true"                      # Adds /actuator/health/liveness & /readiness
+
+            # Enable graceful shutdown at app level (align with terminationGracePeriodSeconds)
+            - name: SERVER_SHUTDOWN
+              value: "graceful"
+
+          readinessProbe:
+            httpGet:
+              path: /ase-1/actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 6
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /ase-1/actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 1
+          startupProbe:
+            httpGet:
+              path: /ase-1/actuator/health
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 30
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true       # Immutable root FS → mount /tmp as writable
+            capabilities:
+              drop: ["ALL"]
+
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        - name: tmp
+          emptyDir: {}
