@@ -2,20 +2,22 @@ create extension if not exists btree_gist;
 
 create table buildings
 (
-  id          uuid               not null primary key,
-  name        varchar(16) unique not null,
-  description varchar(255),
-  address     varchar(128)       not null,
-  state       varchar(16)        not null
+  id          uuid                not null primary key,
+  name        varchar(16)  unique not null,
+  description varchar(255) unique not null,
+  address     varchar(128)        not null,
+  state       varchar(16)         not null
 );
 
 create table rooms
 (
-  id              uuid                  not null primary key,
-  building_id     uuid                  not null,
+  id              uuid                         not null primary key,
+  building_id     uuid                         not null,
   name            varchar(255)
-    constraint unique_rooms_name unique not null,
-  characteristics jsonb                 not null,
+    constraint unique_rooms_name        unique not null,
+  chem_symbol varchar(32)
+    constraint unique_rooms_chem_symbol unique not null,
+  characteristics jsonb                        not null,
   constraint fk_rooms_on_buildings foreign key (building_id) references buildings (id)
 );
 
