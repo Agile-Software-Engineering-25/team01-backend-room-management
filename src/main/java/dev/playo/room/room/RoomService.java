@@ -147,15 +147,25 @@ public class RoomService {
   public @NonNull Room updateRoom(@NonNull UUID roomId, @NonNull RoomCreateRequest room) {
     var existingRoom = this.findRoomById(roomId);
     var lowerCaseName = room.getName().toLowerCase();
+
+    // If name was changed to one that already exist throw an error
     if (!existingRoom.getName().equals(lowerCaseName) && this.repository.existsByName(lowerCaseName)) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Room with name %s already exists".formatted(lowerCaseName));
     }
 
+    // If building was changed to one that doesn't exist throw an error
+    if (!buildingRepository.existsById(room.getBuildingId())) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Building with ID %s does not exists".formatted(room.getBuildingId()));
+    }
+
+    // Update the values
     existingRoom.setName(lowerCaseName);
-    // TODO: might need to validate building existence
     existingRoom.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
+    existingRoom.setCharacteristics(room.getCharacteristics());
     var updatedRoom = this.repository.save(existingRoom);
+
     return updatedRoom.toRoomDto();
   }
 
