@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.multipart.MultipartException;
@@ -159,6 +160,21 @@ public class GlobalExceptionHandler {
     var problemDetail = this.buildBaseProblemDetail(request, HttpStatus.NOT_FOUND);
     problemDetail.setTitle("Resource not found");
     problemDetail.setDetail("The requested resource does not exist");
+    return problemDetail;
+  }
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public @Nonnull ProblemDetail handleMethodArgumentNotValidException(
+      @Nonnull MethodArgumentNotValidException exception,
+      @Nonnull HttpServletRequest request
+  ) {
+    var problemDetail = this.buildBaseProblemDetail(request, HttpStatus.BAD_REQUEST);
+    problemDetail.setTitle("Constraint Violation");
+    problemDetail.setDetail("Parameter(s) did not pass constraint validation");
+    // might need some love for better formatting
+    problemDetail.setProperty("fieldViolations", exception.getBindingResult().getFieldErrors());
+    problemDetail.setProperty("globalViolations", exception.getBindingResult().getGlobalErrors());
+
     return problemDetail;
   }
 
