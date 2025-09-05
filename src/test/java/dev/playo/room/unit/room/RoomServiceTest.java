@@ -1,6 +1,10 @@
 package dev.playo.room.unit.room;
 
+import dev.playo.generated.roommanagement.model.Room;
+import dev.playo.generated.roommanagement.model.RoomCreateRequest;
+import dev.playo.room.TestUtils;
 import dev.playo.room.booking.data.BookingRepository;
+import dev.playo.room.building.data.BuildingEntity;
 import dev.playo.room.building.data.BuildingRepository;
 import dev.playo.room.exception.GeneralProblemException;
 import dev.playo.room.room.RoomService;
@@ -159,5 +163,29 @@ public class RoomServiceTest {
 
     verify(roomRepository).findById(roomId);
     verify(bookingRepository, never()).existsCurrentOrFutureBookingForRoom(any());
+  }
+
+  @Test
+  void updateRoomShouldChangeName() {
+    UUID buildingId = UUID.randomUUID();
+    BuildingEntity mockBuilding = new BuildingEntity();
+    mockBuilding.setId(buildingId);
+
+    UUID roomId = UUID.randomUUID();
+    RoomEntity mockRoomEntity = new RoomEntity();
+    mockRoomEntity.setId(roomId);
+    mockRoomEntity.setName("testRoom");
+    mockRoomEntity.setBuilding(mockBuilding);
+
+    RoomCreateRequest mockRequest = new RoomCreateRequest();
+    mockRequest.setName("testRoomUpdate");
+    mockRequest.setBuildingId(buildingId);
+
+    when(roomRepository.findById(roomId)).thenReturn(Optional.of(mockRoomEntity));
+    when(buildingRepository.existsById(mockRequest.getBuildingId())).thenReturn(false);
+    when(roomRepository.save(mockRoomEntity)).thenReturn(mockRoomEntity);
+
+    roomService.updateRoom(roomId, mockRequest);
+
   }
 }
