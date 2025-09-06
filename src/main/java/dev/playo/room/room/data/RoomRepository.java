@@ -8,6 +8,8 @@ public interface RoomRepository extends JpaRepository<RoomEntity, UUID> {
 
   boolean existsByName(String name);
 
+  boolean existsByChemSymbol(String name);
+
   List<RoomEntity> findRoomEntityByBuildingId(UUID buildingId);
 }
 

@@ -525,6 +525,8 @@ components:
           format: uuid
         name:
           type: string
+        chemSymbol:
+          type: string
         buildingId:
           type: string
           format: uuid
@@ -536,12 +538,15 @@ components:
       required:
         - id
         - name
+        - chemSymbol
         - buildingId
         - characteristics
     RoomCreateRequest:
       type: object
       properties:
         name:
+          type: string
+        chemSymbol:
           type: string
         buildingId:
           type: string
@@ -552,6 +557,7 @@ components:
             $ref: '#/components/schemas/Characteristic'
       required:
         - name
+        - chemSymbol
         - buildingId
         - characteristics
     Characteristic:

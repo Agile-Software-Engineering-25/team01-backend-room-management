@@ -55,9 +55,20 @@ public class RoomService {
         "Room with name %s already exists".formatted(lowerCaseName));
     }
 
+    var lowercaseChemSymbol = room.getChemSymbol().toLowerCase();
+    if (this.repository.existsByChemSymbol(lowercaseChemSymbol)) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Room with chemSymbol %s already exists".formatted(lowercaseChemSymbol));
+    }
+
+    if (!buildingRepository.existsById(room.getBuildingId())){
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Building with ID %s does not exist".formatted(room.getBuildingId()));
+    }
+
     var roomEntity = new RoomEntity();
     roomEntity.setName(lowerCaseName);
-    //TODO: might need to validate building existence
+    roomEntity.setChemSymbol(lowercaseChemSymbol);
     roomEntity.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
     roomEntity.setCharacteristics(room.getCharacteristics());
     var savedRoom = this.repository.save(roomEntity);
@@ -152,8 +163,19 @@ public class RoomService {
         "Room with name %s already exists".formatted(lowerCaseName));
     }
 
+    var lowercaseChemSymbol = room.getChemSymbol().toLowerCase();
+    if (this.repository.existsByChemSymbol(lowercaseChemSymbol)) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Room with chemSymbol %s already exists".formatted(lowercaseChemSymbol));
+    }
+
+    if (!buildingRepository.existsById(room.getBuildingId())){
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Building with ID %s does not exist".formatted(room.getBuildingId()));
+    }
+
     existingRoom.setName(lowerCaseName);
-    // TODO: might need to validate building existence
+    existingRoom.setChemSymbol(lowercaseChemSymbol);
     existingRoom.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
     var updatedRoom = this.repository.save(existingRoom);
     return updatedRoom.toRoomDto();
