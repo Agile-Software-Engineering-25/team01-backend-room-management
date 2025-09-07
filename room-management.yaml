@@ -505,12 +505,18 @@ components:
         name:
           type: string
           description: Name of the building
+          minLength: 1
+          maxLength: 16
         address:
           type: string
           description: Street address of the building
+          minLength: 1
+          maxLength: 128
         description:
           type: string
           description: Description of the building
+          minLength: 1
+          maxLength: 255
         state:
           $ref: '#/components/schemas/BuildingState'
       required:
@@ -525,8 +531,12 @@ components:
           format: uuid
         name:
           type: string
+          minLength: 1
+          maxLength: 16
         chemSymbol:
           type: string
+          minLength: 1
+          maxLength: 32
         buildingId:
           type: string
           format: uuid
@@ -546,8 +556,12 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
+          maxLength: 16
         chemSymbol:
           type: string
+          minLength: 1
+          maxLength: 32
         buildingId:
           type: string
           format: uuid
