@@ -42,7 +42,7 @@ spec:
               containerPort: 8080
           env:
             - name: SERVER_SERVLET_CONTEXT_PATH
-              value: "/ase-1"                # App will live under /<team>
+              value: "/ase-1/room-mgmt"                # App will live under /<team>
 
             # Tell Spring to respect X-Forwarded-* from Traefik
             - name: SERVER_FORWARD_HEADERS_STRATEGY
@@ -64,7 +64,7 @@ spec:
 
           readinessProbe:
             httpGet:
-              path: /ase-1/actuator/health/readiness
+              path: /ase-1/room-mgmt/actuator/health/readiness
               port: 8080
             initialDelaySeconds: 10
             periodSeconds: 5
@@ -72,7 +72,7 @@ spec:
             timeoutSeconds: 1
           livenessProbe:
             httpGet:
-              path: /ase-1/actuator/health/liveness
+              path: /ase-1/room-mgmt/actuator/health/liveness
               port: 8080
             initialDelaySeconds: 20
             periodSeconds: 10
@@ -80,7 +80,7 @@ spec:
             timeoutSeconds: 1
           startupProbe:
             httpGet:
-              path: /ase-1/actuator/health
+              path: /ase-1/room-mgmt/actuator/health
               port: 8080
             periodSeconds: 5
             failureThreshold: 30
