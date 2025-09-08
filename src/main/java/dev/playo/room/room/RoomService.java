@@ -13,6 +13,7 @@ import dev.playo.room.room.data.RoomEntity;
 import dev.playo.room.room.data.RoomRepository;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -143,10 +144,6 @@ public class RoomService {
       .toList();
   }
 
-  public boolean bookingExistsForRoom(@NonNull RoomEntity room) {
-    return this.bookingRepository.existsCurrentOrFutureBookingForRoom(room);
-  }
-
   public @NonNull Room updateRoom(@NonNull UUID roomId, @NonNull RoomCreateRequest room) {
     var existingRoom = this.findRoomById(roomId);
     var lowerCaseName = room.getName().toLowerCase();
@@ -162,23 +159,40 @@ public class RoomService {
     return updatedRoom.toRoomDto();
   }
 
-  public void deleteRoomById(@NonNull UUID roomId) {
-      var room = this.findRoomById(roomId);
-      boolean bookingExists = bookingExistsForRoom(room);
-      if (bookingExists) {
-        throw new GeneralProblemException(
-          HttpStatus.BAD_REQUEST,
-          "Room with name %s is booked and cannot be deleted".formatted(room.getName()));
-      }
+  public boolean deletableRoom(@NonNull UUID roomId) {
+    var room = this.findRoomById(roomId);
+    return !this.bookingRepository.existsCurrentOrFutureBookingForRoom(room);
+  }
 
-      try {
-        this.repository.delete(room);
-      } catch (DataIntegrityViolationException exception) {
-        log.trace("Data integrity violation while deleting booked room: {}", exception.getMessage());
-        throw new GeneralProblemException(
-          HttpStatus.BAD_REQUEST,
-          "Room with name %s could not be deleted because it is booked.".formatted(room.getName()));
-      }
+  @Transactional
+  public void deleteRoomById(@NonNull UUID roomId, boolean forceDelete) {
+    var room = this.findRoomById(roomId);
+    if (forceDelete) {
+      this.forceDeleteRoom(room);
+      return;
+    }
+
+    var bookingExists = this.bookingRepository.existsCurrentOrFutureBookingForRoom(room);
+    if (bookingExists) {
+      throw new GeneralProblemException(
+        HttpStatus.BAD_REQUEST,
+        "Room with name %s is booked and cannot be deleted".formatted(room.getName()));
+    }
+
+    try {
+      this.repository.delete(room);
+    } catch (DataIntegrityViolationException exception) {
+      log.trace("Data integrity violation while deleting booked room: {}", exception.getMessage());
+      throw new GeneralProblemException(
+        HttpStatus.BAD_REQUEST,
+        "Room with name %s could not be deleted because it is booked.".formatted(room.getName()));
+    }
+  }
+
+  private void forceDeleteRoom(@NonNull RoomEntity roomEntity) {
+    log.debug("Running force deletion of room {}", roomEntity.getId());
+    this.bookingRepository.deleteAllByRoom(roomEntity);
+    this.repository.delete(roomEntity);
   }
 
   private @NonNull String operatorForCharacteristic(
