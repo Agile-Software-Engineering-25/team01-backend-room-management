@@ -154,9 +154,8 @@ public class RoomService {
         "Room with name %s already exists".formatted(lowerCaseName));
     }
 
-    // If building was changed to one that doesn't exist throw an error
-    if (!existingRoom.getBuilding().getId().equals(room.getBuildingId())
-        && buildingRepository.existsById(room.getBuildingId())) {
+    // If new building doesn't exist throw an error
+    if (!buildingRepository.existsById(room.getBuildingId())) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Building with ID %s does not exists".formatted(room.getBuildingId()));
     }
