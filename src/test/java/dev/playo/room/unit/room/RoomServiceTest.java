@@ -167,9 +167,6 @@ public class RoomServiceTest {
     verify(bookingRepository, never()).existsCurrentOrFutureBookingForRoom(any());
   }
 
-  /**
-   * A test if the room name can successfully be updated
-   */
   @Test
   void updateRoomShouldChangeName() {
     UUID roomId = UUID.randomUUID();
