@@ -24,7 +24,27 @@ public final class TestUtils {
     characteristics.add(new Characteristic("Projector", 1));
 
     RoomEntity room = new RoomEntity();
-    room.setName("TestRoom");
+    room.setName("testroom");
+    room.setBuilding(savedBuilding);
+    room.setCharacteristics(characteristics);
+
+    return room;
+  }
+
+  /**
+   * A second version of createTestRoom
+   * Sometimes a second room is needed, but you can't call createTestRoom twice as it causes key errors
+   */
+  public static RoomEntity createTestRoom2(BuildingRepository buildingRepository){
+    BuildingEntity buildingEntity = createTestBuilding2();
+    BuildingEntity savedBuilding = buildingRepository.save(buildingEntity);
+
+    List<Characteristic> characteristics = new ArrayList<>();
+    characteristics.add(new Characteristic("Whiteboard", 1));
+    characteristics.add(new Characteristic("Projector", 1));
+
+    RoomEntity room = new RoomEntity();
+    room.setName("testroom2");
     room.setBuilding(savedBuilding);
     room.setCharacteristics(characteristics);
 
@@ -37,6 +57,22 @@ public final class TestUtils {
     buildingEntity.setName("testBuilding");
     buildingEntity.setDescription("testBuildingDescription");
     buildingEntity.setAddress("testBuildingAddress");
+    buildingEntity.setState(BuildingState.OPEN);
+
+    return buildingEntity;
+  }
+
+  /**
+   * A second version of createTestBuilding
+   * Sometimes a second building is needed, but you can't call createTestBuilding twice as it causes key errors
+   * Also used for createTestRoom2 because in createTestRoom createTestBuilding is used
+   */
+  public static BuildingEntity createTestBuilding2(){
+    BuildingEntity buildingEntity = new BuildingEntity();
+
+    buildingEntity.setName("testBuilding2");
+    buildingEntity.setDescription("testBuilding2Description");
+    buildingEntity.setAddress("testBuilding2Address");
     buildingEntity.setState(BuildingState.OPEN);
 
     return buildingEntity;
