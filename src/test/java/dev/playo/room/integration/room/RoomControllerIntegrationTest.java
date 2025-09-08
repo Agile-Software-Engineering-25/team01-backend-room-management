@@ -1,9 +1,12 @@
 package dev.playo.room.integration.room;
 
+import dev.playo.generated.roommanagement.model.Characteristic;
+import dev.playo.generated.roommanagement.model.RoomCreateRequest;
 import dev.playo.room.AbstractPostgresContainerTest;
 import dev.playo.room.TestUtils;
 import dev.playo.room.booking.data.BookingEntity;
 import dev.playo.room.booking.data.BookingRepository;
+import dev.playo.room.building.data.BuildingEntity;
 import dev.playo.room.building.data.BuildingRepository;
 import dev.playo.room.integration.TestCleaner;
 import dev.playo.room.room.data.RoomEntity;
@@ -15,11 +18,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.*;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +45,8 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
 
   @Autowired
   private BookingRepository bookingRepository;
+
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @BeforeEach
   void clearDatabase() {
@@ -138,5 +143,82 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     this.mockMvc.perform(get("/rooms/{id}/deletable", id)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void shouldUpdateRoomSuccessfully() throws Exception {
+    // Create and persist original room with its building
+    RoomEntity originalRoom = TestUtils.createTestRoom(buildingRepository);
+    roomRepository.save(originalRoom);
+
+    // Create and persist a new building to assign during update
+    BuildingEntity newBuilding = TestUtils.createTestBuilding();
+    newBuilding.setName("UpdatedBuilding");
+    buildingRepository.save(newBuilding);
+
+    // Prepare update request with new name, new building ID, and new characteristics
+    RoomCreateRequest updateRequest = new RoomCreateRequest();
+    updateRequest.setName("UpdatedRoom");
+    updateRequest.setBuildingId(newBuilding.getId());
+    updateRequest.setCharacteristics(List.of(
+      new Characteristic("SmartBoard", 1),
+      new Characteristic("SpeakerSystem", 2)
+    ));
+
+    // Perform PUT request to update the room
+    mockMvc.perform(put("/rooms/{id}", originalRoom.getId())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(updateRequest)))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.name").value("updatedroom"))
+      .andExpect(jsonPath("$.buildingId").value(newBuilding.getId().toString()))
+      .andExpect(jsonPath("$.characteristics").isArray())
+      .andExpect(jsonPath("$.characteristics[0].type").value("SmartBoard"))
+      .andExpect(jsonPath("$.characteristics[1].type").value("SpeakerSystem"));
+
+    // Verify that room was updated in the database
+    Optional<RoomEntity> updatedRoomOpt = roomRepository.findById(originalRoom.getId());
+    assertThat(updatedRoomOpt).isPresent();
+
+    RoomEntity updatedRoom = updatedRoomOpt.get();
+    assertThat(updatedRoom.getName()).isEqualTo("updatedroom");
+    assertThat(updatedRoom.getBuilding().getId()).isEqualTo(newBuilding.getId());
+    assertThat(updatedRoom.getCharacteristics()).containsExactlyInAnyOrder(
+      new Characteristic("SmartBoard", 1),
+      new Characteristic("SpeakerSystem", 2)
+    );
+  }
+
+  @Test
+  void shouldRejectUpdateWhenRoomNameAlreadyExists() throws Exception {
+    // Create and persist first room
+    RoomEntity existingRoom = TestUtils.createTestRoom(buildingRepository);
+    roomRepository.save(existingRoom);
+
+    // Create and persist second room that will attempt to use the same name
+    RoomEntity targetRoom = TestUtils.createTestRoom2(buildingRepository);
+    roomRepository.save(targetRoom);
+
+    // Prepare update request with duplicate name (case-insensitive match)
+    RoomCreateRequest updateRequest = new RoomCreateRequest();
+    updateRequest.setName("testroom"); // same name as existingRoom, but lowercase
+    updateRequest.setBuildingId(targetRoom.getBuilding().getId());
+    updateRequest.setCharacteristics(List.of(
+      new Characteristic("Whiteboard", 1)
+    ));
+
+    // Perform PUT request to update the room
+    mockMvc.perform(put("/rooms/{id}", targetRoom.getId())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(updateRequest)))
+      .andExpect(status().isBadRequest())
+      .andExpect(jsonPath("$.detail").value("Room with name testroom already exists"));
+
+    // Verify that the target room was not updated
+    Optional<RoomEntity> unchangedRoomOpt = roomRepository.findById(targetRoom.getId());
+    assertThat(unchangedRoomOpt).isPresent();
+
+    RoomEntity unchangedRoom = unchangedRoomOpt.get();
+    assertThat(unchangedRoom.getName()).isEqualTo("testroom2"); // original name remains
   }
 }
