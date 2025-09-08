@@ -1,3 +1,5 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
 plugins {
   java
   id("org.springframework.boot") version "3.5.3"
@@ -16,6 +18,10 @@ java {
 
 tasks.withType<JavaCompile> {
   dependsOn("openApiGenerate")
+}
+
+tasks.withType<BootJar> {
+  archiveFileName.set("app.jar")
 }
 
 openApiGenerate {

@@ -1,0 +1,30 @@
+name: deploy-to-k8s
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: Upload image
+        uses: Agile-Software-Engineering-25/build-and-publish-image@v1.0.0
+        with:
+          extra_tags: ${{ github.sha }}
+
+      - name: Deploy to Namespace
+        uses: Agile-Software-Engineering-25/deploy-to-k8s@v1
+        with:
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+          namespace: ${{ vars.K8S_NAMESPACE }}
+          deployment: room-mgmt
+          image: ghcr.io/agile-software-engineering-25/team01-backend-room-management
+          tag: ${{ github.sha }}
