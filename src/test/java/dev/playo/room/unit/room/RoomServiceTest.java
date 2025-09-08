@@ -1,5 +1,6 @@
 package dev.playo.room.unit.room;
 
+import dev.playo.generated.roommanagement.model.Characteristic;
 import dev.playo.generated.roommanagement.model.Room;
 import dev.playo.generated.roommanagement.model.RoomCreateRequest;
 import dev.playo.room.TestUtils;
@@ -17,13 +18,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -165,27 +167,202 @@ public class RoomServiceTest {
     verify(bookingRepository, never()).existsCurrentOrFutureBookingForRoom(any());
   }
 
+  /**
+   * A test if the room name can successfully be updated
+   */
   @Test
   void updateRoomShouldChangeName() {
-    UUID buildingId = UUID.randomUUID();
-    BuildingEntity mockBuilding = new BuildingEntity();
-    mockBuilding.setId(buildingId);
-
     UUID roomId = UUID.randomUUID();
-    RoomEntity mockRoomEntity = new RoomEntity();
-    mockRoomEntity.setId(roomId);
-    mockRoomEntity.setName("testRoom");
-    mockRoomEntity.setBuilding(mockBuilding);
+    UUID buildingId = UUID.randomUUID();
 
-    RoomCreateRequest mockRequest = new RoomCreateRequest();
-    mockRequest.setName("testRoomUpdate");
-    mockRequest.setBuildingId(buildingId);
+    // Create List<Characteristic> for both rooms
+    List<Characteristic> characteristics = new ArrayList<>();
+    characteristics.add(new Characteristic("Whiteboard", 1));
+    characteristics.add(new Characteristic("Projector", 1));
 
-    when(roomRepository.findById(roomId)).thenReturn(Optional.of(mockRoomEntity));
-    when(buildingRepository.existsById(mockRequest.getBuildingId())).thenReturn(false);
-    when(roomRepository.save(mockRoomEntity)).thenReturn(mockRoomEntity);
+    // Current room
+    RoomEntity existingRoom = new RoomEntity();
+    existingRoom.setId(roomId);
+    existingRoom.setName("oldname");
+    BuildingEntity buildingEntity = new BuildingEntity();
+    buildingEntity.setId(buildingId);
+    existingRoom.setBuilding(buildingEntity);
+    existingRoom.setCharacteristics(characteristics);
 
-    roomService.updateRoom(roomId, mockRequest);
+    // Request to change the name
+    RoomCreateRequest updateRequest = new RoomCreateRequest();
+    updateRequest.setName("NewRoomName");
+    updateRequest.setBuildingId(buildingId);
+    updateRequest.setCharacteristics(characteristics);
 
+    // Expected room
+    RoomEntity updatedRoom = new RoomEntity();
+    updatedRoom.setId(roomId);
+    updatedRoom.setName("newroomname"); // lowercase
+    updatedRoom.setBuilding(buildingEntity);
+    updatedRoom.setCharacteristics(characteristics);
+
+    // Mocking
+    when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
+    when(roomRepository.existsByName("newroomname")).thenReturn(false);
+    when(buildingRepository.getReferenceById(buildingId)).thenReturn(buildingEntity);
+    when(roomRepository.save(any(RoomEntity.class))).thenReturn(updatedRoom);
+
+    // Call function
+    Room result = roomService.updateRoom(roomId, updateRequest);
+
+    // Verification
+    verify(roomRepository).findById(roomId);
+    verify(roomRepository).existsByName("newroomname");
+    verify(buildingRepository).getReferenceById(buildingId);
+    verify(roomRepository).save(any(RoomEntity.class));
+
+    // Assertions
+    assertEquals("newroomname", result.getName());
+    }
+
+  @Test
+  void updateRoomShouldChangeCharacteristic() {
+    UUID roomId = UUID.randomUUID();
+    UUID buildingId = UUID.randomUUID();
+
+    // Current room
+    RoomEntity existingRoom = new RoomEntity();
+    existingRoom.setId(roomId);
+    existingRoom.setName("oldname");
+    BuildingEntity buildingEntity = new BuildingEntity();
+    buildingEntity.setId(buildingId);
+    existingRoom.setBuilding(buildingEntity);
+    existingRoom.setCharacteristics(new ArrayList<>());
+
+    // Create changed List<Characteristic>
+    List<Characteristic> characteristics = new ArrayList<>();
+    characteristics.add(new Characteristic("Whiteboard", 1));
+    characteristics.add(new Characteristic("Projector", 1));
+
+    // Request to change the characteristics
+    RoomCreateRequest updateRequest = new RoomCreateRequest();
+    updateRequest.setName("NewRoomName");
+    updateRequest.setBuildingId(buildingId);
+    updateRequest.setCharacteristics(characteristics);
+
+    // Expected room
+    RoomEntity updatedRoom = new RoomEntity();
+    updatedRoom.setId(roomId);
+    updatedRoom.setName("newroomname"); // lowercase
+    updatedRoom.setBuilding(buildingEntity);
+    updatedRoom.setCharacteristics(characteristics);
+
+    // Mocking
+    when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
+    when(roomRepository.existsByName("newroomname")).thenReturn(false);
+    when(buildingRepository.getReferenceById(buildingId)).thenReturn(buildingEntity);
+    when(roomRepository.save(any(RoomEntity.class))).thenReturn(updatedRoom);
+
+    // Call function
+    Room result = roomService.updateRoom(roomId, updateRequest);
+
+    // Verification
+    verify(roomRepository).findById(roomId);
+    verify(roomRepository).existsByName("newroomname");
+    verify(buildingRepository).getReferenceById(buildingId);
+    verify(roomRepository).save(any(RoomEntity.class));
+
+    // Assertions
+    assertEquals(characteristics, result.getCharacteristics());
+  }
+
+  @Test
+  void updateRoomShouldThrowExceptionWhenBuildingDoesNotExist() {
+    UUID roomId = UUID.randomUUID();
+    UUID oldBuildingId = UUID.randomUUID();
+    UUID newBuildingId = UUID.randomUUID(); // different from existing
+
+    // Existing room setup
+    RoomEntity existingRoom = new RoomEntity();
+    existingRoom.setId(roomId);
+    existingRoom.setName("oldname");
+    BuildingEntity oldBuilding = new BuildingEntity();
+    oldBuilding.setId(oldBuildingId);
+    existingRoom.setBuilding(oldBuilding);
+
+    // Update request with new building ID
+    RoomCreateRequest updateRequest = new RoomCreateRequest();
+    updateRequest.setName("NewRoomName");
+    updateRequest.setBuildingId(newBuildingId);
+    updateRequest.setCharacteristics(List.of(new Characteristic("WiFi", 1)));
+
+    // Mocking
+    when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
+    when(roomRepository.existsByName("newroomname")).thenReturn(false); // room already exists
+    when(buildingRepository.existsById(newBuildingId)).thenReturn(false); // building does not exist
+
+    // Expect exception
+    assertThrows(GeneralProblemException.class, () -> roomService.updateRoom(roomId, updateRequest));
+
+    // Verify interactions
+    verify(roomRepository).findById(roomId);
+    verify(roomRepository).existsByName("newroomname");
+    verify(buildingRepository).existsById(newBuildingId);
+    verifyNoMoreInteractions(roomRepository, buildingRepository);
+  }
+
+  @Test
+  void updateRoomShouldThrowExceptionWhenRoomNotFound() {
+    UUID roomId = UUID.randomUUID();
+    UUID buildingId = UUID.randomUUID();
+
+    RoomCreateRequest updateRequest = new RoomCreateRequest();
+    updateRequest.setName("NewRoomName");
+    updateRequest.setBuildingId(buildingId);
+    updateRequest.setCharacteristics(List.of(new Characteristic("WiFi", 1)));
+
+    // Mock: room not found
+    when(roomRepository.findById(roomId)).thenReturn(Optional.empty());
+
+    // Expect exception
+    assertThrows(GeneralProblemException.class, () -> roomService.updateRoom(roomId, updateRequest));
+
+    // Verify only findById was called
+    verify(roomRepository).findById(roomId);
+    verifyNoMoreInteractions(roomRepository, buildingRepository);
+  }
+
+  @Test
+  void updateRoomShouldFailWhenNameAlreadyExists() {
+    UUID roomId = UUID.randomUUID();
+    UUID buildingId = UUID.randomUUID();
+
+    // Existing room setup
+    RoomEntity existingRoom = new RoomEntity();
+    existingRoom.setId(roomId);
+    existingRoom.setName("oldname");
+    BuildingEntity building = new BuildingEntity();
+    building.setId(buildingId);
+    existingRoom.setBuilding(building);
+
+    // Update request with conflicting name
+    RoomCreateRequest updateRequest = new RoomCreateRequest();
+    updateRequest.setName("ExistingRoomName"); // name already taken
+    updateRequest.setBuildingId(buildingId);
+    updateRequest.setCharacteristics(List.of(new Characteristic("WiFi", 1)));
+
+    // Mocks
+    when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
+    when(roomRepository.existsByName("existingroomname")).thenReturn(true); // name conflict
+
+    // Act and Assert
+    GeneralProblemException exception = assertThrows(GeneralProblemException.class, () ->
+      roomService.updateRoom(roomId, updateRequest)
+    );
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals("Room with name %s already exists".formatted("existingroomname"), exception.getMessage());
+
+    // Verify interactions
+    verify(roomRepository).findById(roomId);
+    verify(roomRepository).existsByName("existingroomname");
+    verifyNoInteractions(buildingRepository);
   }
 }
+
