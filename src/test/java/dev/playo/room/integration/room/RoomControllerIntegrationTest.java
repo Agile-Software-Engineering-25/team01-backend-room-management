@@ -1,5 +1,9 @@
 package dev.playo.room.integration.room;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.playo.generated.roommanagement.model.Characteristic;
+import dev.playo.generated.roommanagement.model.RoomCreateRequest;
 import dev.playo.room.AbstractPostgresContainerTest;
 import dev.playo.room.TestUtils;
 import dev.playo.room.booking.data.BookingEntity;
@@ -20,6 +24,7 @@ import java.util.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,9 +48,39 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
   @Autowired
   private BookingRepository bookingRepository;
 
+  private final ObjectMapper mapper = new ObjectMapper();;
+
   @BeforeEach
   void clearDatabase() {
     this.testCleaner.clean();
+  }
+
+  @Test
+  void shouldCreateRoom() throws Exception {
+    var room = TestUtils.createTestRoom(buildingRepository);
+
+    var request = new RoomCreateRequest(
+      room.getName(),
+      room.getChemSymbol(),
+      room.getBuilding().getId(),
+      room.getCharacteristics());
+
+    mockMvc.perform(post("/rooms")
+      .content(mapper.writeValueAsString(request))
+      .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.name").value("testroom"))
+      .andExpect(jsonPath("$.chemSymbol").value("hydrogenium"))
+      .andExpect(jsonPath("$.buildingId").value(room.getBuilding().getId().toString()))
+      .andExpect(jsonPath("$.characteristics").isArray())
+      .andExpect(jsonPath("$.characteristics[0].type").value("Whiteboard"))
+      .andExpect(jsonPath("$.characteristics[0].value").value(1))
+      .andExpect(jsonPath("$.characteristics[1].type").value("Projector"))
+      .andExpect(jsonPath("$.characteristics[1].value").value(1));
+
+    List<RoomEntity> rooms = roomRepository.findAll();
+    assertThat(rooms).hasSize(1);
+    RoomEntity savedRoom = rooms.getFirst();
   }
 
   @Test
@@ -138,5 +173,19 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     this.mockMvc.perform(get("/rooms/{id}/deletable", id)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void shouldReturnInvalidSymbolWhenCreatingRoom() throws Exception {
+//    var room = TestUtils.createTestRoom(this.buildingRepository);
+//
+//    var request = new RoomCreateRequest();
+//    request.setName("Test Room");
+//    request.setChemSymbol("invalidSymbol:'#*+");
+//    request.setBuildingId(room.getBuilding().getId());
+//
+//    this.mockMvc.perform(post("/rooms")
+//      .content(mapper.writeValueAsString(request))
+//      .contentType(MediaType.APPLICATION_JSON));
   }
 }
