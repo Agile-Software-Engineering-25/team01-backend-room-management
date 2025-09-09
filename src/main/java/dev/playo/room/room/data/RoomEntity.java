@@ -42,6 +42,7 @@ public class RoomEntity {
     return new Room()
       .id(this.getId())
       .name(this.getName())
+      .chemSymbol(this.getChemSymbol())
       .buildingId(this.building.getId())
       .characteristics(this.getCharacteristics());
   }
