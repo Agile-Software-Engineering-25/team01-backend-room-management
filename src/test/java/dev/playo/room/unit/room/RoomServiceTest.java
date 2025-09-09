@@ -3,7 +3,6 @@ package dev.playo.room.unit.room;
 import dev.playo.generated.roommanagement.model.Characteristic;
 import dev.playo.generated.roommanagement.model.Room;
 import dev.playo.generated.roommanagement.model.RoomCreateRequest;
-import dev.playo.room.TestUtils;
 import dev.playo.room.booking.data.BookingRepository;
 import dev.playo.room.building.data.BuildingEntity;
 import dev.playo.room.building.data.BuildingRepository;
@@ -169,105 +168,109 @@ public class RoomServiceTest {
 
   @Test
   void updateRoomShouldChangeName() {
-    UUID roomId = UUID.randomUUID();
-    UUID buildingId = UUID.randomUUID();
+    // Setup
+    UUID roomId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    UUID buildingId = UUID.fromString("22222222-2222-2222-2222-222222222222");
 
-    // Create List<Characteristic> for both rooms
-    List<Characteristic> characteristics = new ArrayList<>();
-    characteristics.add(new Characteristic("Whiteboard", 1));
-    characteristics.add(new Characteristic("Projector", 1));
+    List<Characteristic> characteristics = List.of(
+      new Characteristic("Whiteboard", 1),
+      new Characteristic("Projector", 1)
+    );
 
-    // Current room
+    BuildingEntity buildingEntity = new BuildingEntity();
+    buildingEntity.setId(buildingId);
+
     RoomEntity existingRoom = new RoomEntity();
     existingRoom.setId(roomId);
     existingRoom.setName("oldname");
-    BuildingEntity buildingEntity = new BuildingEntity();
-    buildingEntity.setId(buildingId);
     existingRoom.setBuilding(buildingEntity);
     existingRoom.setCharacteristics(characteristics);
 
-    // Request to change the name
     RoomCreateRequest updateRequest = new RoomCreateRequest();
-    updateRequest.setName("NewRoomName");
+    updateRequest.setName("newroomname");
     updateRequest.setBuildingId(buildingId);
     updateRequest.setCharacteristics(characteristics);
 
-    // Expected room
-    RoomEntity updatedRoom = new RoomEntity();
-    updatedRoom.setId(roomId);
-    updatedRoom.setName("newroomname"); // lowercase
-    updatedRoom.setBuilding(buildingEntity);
-    updatedRoom.setCharacteristics(characteristics);
+    RoomEntity savedRoom = new RoomEntity();
+    savedRoom.setId(roomId);
+    savedRoom.setName("newroomname");
+    savedRoom.setBuilding(buildingEntity);
+    savedRoom.setCharacteristics(characteristics);
 
     // Mocking
     when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
     when(roomRepository.existsByName("newroomname")).thenReturn(false);
+    when(buildingRepository.existsById(buildingId)).thenReturn(true);
     when(buildingRepository.getReferenceById(buildingId)).thenReturn(buildingEntity);
-    when(roomRepository.save(any(RoomEntity.class))).thenReturn(updatedRoom);
+    when(roomRepository.save(any(RoomEntity.class))).thenReturn(savedRoom);
 
-    // Call function
+    // Execution
     Room result = roomService.updateRoom(roomId, updateRequest);
 
     // Verification
     verify(roomRepository).findById(roomId);
     verify(roomRepository).existsByName("newroomname");
+    verify(buildingRepository).existsById(buildingId);
     verify(buildingRepository).getReferenceById(buildingId);
     verify(roomRepository).save(any(RoomEntity.class));
 
-    // Assertions
+    // Assertion
     assertEquals("newroomname", result.getName());
-    }
+  }
 
   @Test
   void updateRoomShouldChangeCharacteristic() {
-    UUID roomId = UUID.randomUUID();
-    UUID buildingId = UUID.randomUUID();
+    // Setup
+    UUID roomId = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    UUID buildingId = UUID.fromString("22222222-2222-2222-2222-222222222222");
 
-    // Current room
+    BuildingEntity buildingEntity = new BuildingEntity();
+    buildingEntity.setId(buildingId);
+
     RoomEntity existingRoom = new RoomEntity();
     existingRoom.setId(roomId);
     existingRoom.setName("oldname");
-    BuildingEntity buildingEntity = new BuildingEntity();
-    buildingEntity.setId(buildingId);
     existingRoom.setBuilding(buildingEntity);
     existingRoom.setCharacteristics(new ArrayList<>());
 
-    // Create changed List<Characteristic>
-    List<Characteristic> characteristics = new ArrayList<>();
-    characteristics.add(new Characteristic("Whiteboard", 1));
-    characteristics.add(new Characteristic("Projector", 1));
+    List<Characteristic> newCharacteristics = List.of(
+      new Characteristic("Whiteboard", 1),
+      new Characteristic("Projector", 1)
+    );
 
-    // Request to change the characteristics
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("NewRoomName");
     updateRequest.setBuildingId(buildingId);
-    updateRequest.setCharacteristics(characteristics);
+    updateRequest.setCharacteristics(newCharacteristics);
 
-    // Expected room
-    RoomEntity updatedRoom = new RoomEntity();
-    updatedRoom.setId(roomId);
-    updatedRoom.setName("newroomname"); // lowercase
-    updatedRoom.setBuilding(buildingEntity);
-    updatedRoom.setCharacteristics(characteristics);
+    RoomEntity savedRoom = new RoomEntity();
+    savedRoom.setId(roomId);
+    savedRoom.setName("newroomname");
+    savedRoom.setBuilding(buildingEntity);
+    savedRoom.setCharacteristics(newCharacteristics);
 
     // Mocking
     when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
     when(roomRepository.existsByName("newroomname")).thenReturn(false);
+    when(buildingRepository.existsById(buildingId)).thenReturn(true);
     when(buildingRepository.getReferenceById(buildingId)).thenReturn(buildingEntity);
-    when(roomRepository.save(any(RoomEntity.class))).thenReturn(updatedRoom);
+    when(roomRepository.save(any(RoomEntity.class))).thenReturn(savedRoom);
 
-    // Call function
+    // Execution
     Room result = roomService.updateRoom(roomId, updateRequest);
 
     // Verification
     verify(roomRepository).findById(roomId);
     verify(roomRepository).existsByName("newroomname");
+    verify(buildingRepository).existsById(buildingId);
     verify(buildingRepository).getReferenceById(buildingId);
     verify(roomRepository).save(any(RoomEntity.class));
 
-    // Assertions
-    assertEquals(characteristics, result.getCharacteristics());
+    // Assertion
+    assertEquals("newroomname", result.getName());
+    assertEquals(newCharacteristics, result.getCharacteristics());
   }
+
 
   @Test
   void updateRoomShouldThrowExceptionWhenBuildingDoesNotExist() {
