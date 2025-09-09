@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/backend
-    username: backend
-    password: backend
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/backend}
+    username: ${DB_USER:backend}
+    password: ${DB_PASSWORD:backend}
   jpa:
     hibernate:
       ddl-auto: none
