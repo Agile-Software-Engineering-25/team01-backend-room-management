@@ -57,6 +57,7 @@ class BookingServiceTest extends AbstractPostgresContainerTest {
 
     var roomRequest = new RoomCreateRequest();
     roomRequest.setName("Test Room");
+    roomRequest.setChemSymbol("Hydrogenium");
     roomRequest.setBuildingId(building.getId());
     var seatsCharacteristic = new Characteristic();
     seatsCharacteristic.setType(Characteristics.SEATS_CHARACTERISTIC);
@@ -93,6 +94,7 @@ class BookingServiceTest extends AbstractPostgresContainerTest {
 
     var roomRequest = new RoomCreateRequest();
     roomRequest.setName("Test Room");
+    roomRequest.setChemSymbol("Hydrogenium");
     roomRequest.setBuildingId(building.getId());
     var seatsCharacteristic = new Characteristic();
     seatsCharacteristic.setType(Characteristics.SEATS_CHARACTERISTIC);
