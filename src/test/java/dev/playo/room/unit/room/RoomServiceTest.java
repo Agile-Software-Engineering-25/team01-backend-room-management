@@ -1,5 +1,7 @@
 package dev.playo.room.unit.room;
 
+import dev.playo.generated.roommanagement.model.RoomInquiry;
+import dev.playo.generated.roommanagement.model.SearchCharacteristic;
 import dev.playo.room.booking.data.BookingRepository;
 import dev.playo.room.building.data.BuildingRepository;
 import dev.playo.room.exception.GeneralProblemException;
@@ -14,12 +16,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -159,5 +162,24 @@ public class RoomServiceTest {
 
     verify(roomRepository).findById(roomId);
     verify(bookingRepository, never()).existsCurrentOrFutureBookingForRoom(any());
+  }
+
+  @Test
+  void findAvailableRoomsShouldThrowGeneralProblemException() {
+    Map<String, Object> complexValue = Map.of("foo", "bar");
+    SearchCharacteristic invalidSearch =
+      new SearchCharacteristic("Test", complexValue, SearchCharacteristic.OperatorEnum.EQUALS);
+
+    RoomInquiry roomInquiry = new RoomInquiry(
+      OffsetDateTime.now(),
+      OffsetDateTime.now().plusHours(2),
+      UUID.randomUUID(),
+      List.of(invalidSearch)
+    );
+
+    GeneralProblemException exception =
+    assertThrows(GeneralProblemException.class, () -> roomService.findAvailableRooms(roomInquiry));
+
+    assertEquals("Complex objects are not supported as characteristic values.",  exception.getMessage());
   }
 }
