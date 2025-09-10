@@ -1,5 +1,10 @@
 package dev.playo.room.integration.room;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import dev.playo.generated.roommanagement.model.Characteristic;
+import dev.playo.generated.roommanagement.model.RoomInquiry;
+import dev.playo.generated.roommanagement.model.SearchCharacteristic;
 import dev.playo.room.AbstractPostgresContainerTest;
 import dev.playo.room.TestUtils;
 import dev.playo.room.booking.data.BookingEntity;
@@ -16,10 +21,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,6 +48,9 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
 
   @Autowired
   private BookingRepository bookingRepository;
+
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @BeforeEach
   void clearDatabase() {
@@ -138,5 +147,45 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     this.mockMvc.perform(get("/rooms/{id}/deletable", id)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void shouldReturnEmptyList() throws Exception {
+    var room = TestUtils.createTestRoom(this.buildingRepository);
+    room.setCharacteristics(List.of(new Characteristic("Television", 1)));
+    this.roomRepository.save(room);var c1 = new SearchCharacteristic("CurryCookie", 1, SearchCharacteristic.OperatorEnum.EQUALS);
+    var body = new RoomInquiry(
+      OffsetDateTime.now().plusHours(2),
+      OffsetDateTime.now().plusHours(4),
+      UUID.randomUUID(),
+      List.of(c1)
+    );
+
+    this.mockMvc.perform(post("/rooms/inquiry")
+        .content(objectMapper.writeValueAsString(body))
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.length()").value(0));
+  }
+
+  @Test
+  void shouldReturnRoomWithCharacteristic() throws Exception {
+    var room = TestUtils.createTestRoom(this.buildingRepository);
+    room.setCharacteristics(List.of(new Characteristic("Television", 1)));
+    this.roomRepository.save(room);
+    var c1 = new SearchCharacteristic("Television", 1, SearchCharacteristic.OperatorEnum.EQUALS);
+    var body = new RoomInquiry(
+      OffsetDateTime.now().plusHours(2),
+      OffsetDateTime.now().plusHours(4),
+      UUID.randomUUID(),
+      List.of(c1)
+    );
+
+    this.mockMvc.perform(post("/rooms/inquiry")
+        .content(objectMapper.writeValueAsString(body))
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.length()").value(1))
+      .andExpect(jsonPath("$[0].id").value(room.getId().toString()));
   }
 }
