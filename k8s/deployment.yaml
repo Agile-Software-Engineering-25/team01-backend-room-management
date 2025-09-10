@@ -106,7 +106,7 @@ spec:
               memory: "512Mi"
             limits:
               cpu: "1"
-              memory: "512Mi"
+              memory: "1024Mi"
 
           securityContext:
             allowPrivilegeEscalation: false
