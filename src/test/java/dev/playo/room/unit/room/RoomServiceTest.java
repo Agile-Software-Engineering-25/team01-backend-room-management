@@ -364,5 +364,45 @@ public class RoomServiceTest {
     verify(roomRepository).existsByName("existingroomname");
     verifyNoInteractions(buildingRepository);
   }
+
+  @Test
+  void updateRoomShouldFailWhenNewRoomIsWithoutSeats() {
+    UUID roomId = UUID.randomUUID();
+    UUID buildingId = UUID.randomUUID();
+
+    // Existing room setup
+    RoomEntity existingRoom = new RoomEntity();
+    existingRoom.setId(roomId);
+    existingRoom.setName("oldname");
+    BuildingEntity building = new BuildingEntity();
+    building.setId(buildingId);
+    existingRoom.setBuilding(building);
+
+    // Update request without "Seats" characteristic
+    RoomCreateRequest updateRequest = new RoomCreateRequest();
+    updateRequest.setName("newroomname");
+    updateRequest.setBuildingId(buildingId);
+    updateRequest.setCharacteristics(List.of(
+      new Characteristic("Projector", 1),
+      new Characteristic("Whiteboard", 1)
+    ));
+
+    // Mocks
+    when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
+
+    // Act and Assert
+    GeneralProblemException exception = assertThrows(GeneralProblemException.class, () ->
+      roomService.updateRoom(roomId, updateRequest)
+    );
+
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals("Room without seats shouldn't exists", exception.getMessage());
+
+    // Verify interactions
+    verify(roomRepository).findById(roomId);
+    verifyNoInteractions(buildingRepository);
+    verify(roomRepository, never()).existsByName(anyString());
+  }
+
 }
 
