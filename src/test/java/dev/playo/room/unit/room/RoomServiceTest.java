@@ -173,7 +173,7 @@ public class RoomServiceTest {
     UUID buildingId = UUID.fromString("22222222-2222-2222-2222-222222222222");
 
     List<Characteristic> characteristics = List.of(
-      new Characteristic("Whiteboard", 1),
+      new Characteristic("Seats", 1),
       new Characteristic("Projector", 1)
     );
 
@@ -234,7 +234,7 @@ public class RoomServiceTest {
     existingRoom.setCharacteristics(new ArrayList<>());
 
     List<Characteristic> newCharacteristics = List.of(
-      new Characteristic("Whiteboard", 1),
+      new Characteristic("Seats", 1),
       new Characteristic("Projector", 1)
     );
 
@@ -290,7 +290,7 @@ public class RoomServiceTest {
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("NewRoomName");
     updateRequest.setBuildingId(newBuildingId);
-    updateRequest.setCharacteristics(List.of(new Characteristic("WiFi", 1)));
+    updateRequest.setCharacteristics(List.of(new Characteristic("Seats", 30)));
 
     // Mocking
     when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
@@ -315,7 +315,7 @@ public class RoomServiceTest {
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("NewRoomName");
     updateRequest.setBuildingId(buildingId);
-    updateRequest.setCharacteristics(List.of(new Characteristic("WiFi", 1)));
+    updateRequest.setCharacteristics(List.of(new Characteristic("Seats", 20)));
 
     // Mock: room not found
     when(roomRepository.findById(roomId)).thenReturn(Optional.empty());
@@ -345,7 +345,7 @@ public class RoomServiceTest {
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("ExistingRoomName"); // name already taken
     updateRequest.setBuildingId(buildingId);
-    updateRequest.setCharacteristics(List.of(new Characteristic("WiFi", 1)));
+    updateRequest.setCharacteristics(List.of(new Characteristic("Seats", 35)));
 
     // Mocks
     when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
