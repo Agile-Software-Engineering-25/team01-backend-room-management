@@ -1,10 +1,6 @@
 package dev.playo.room.room;
 
-import dev.playo.generated.roommanagement.model.Booking;
-import dev.playo.generated.roommanagement.model.Room;
-import dev.playo.generated.roommanagement.model.RoomCreateRequest;
-import dev.playo.generated.roommanagement.model.RoomInquiry;
-import dev.playo.generated.roommanagement.model.SearchCharacteristic;
+import dev.playo.generated.roommanagement.model.*;
 import dev.playo.room.booking.data.BookingEntity;
 import dev.playo.room.booking.data.BookingRepository;
 import dev.playo.room.building.data.BuildingRepository;
@@ -147,6 +143,19 @@ public class RoomService {
   public @NonNull Room updateRoom(@NonNull UUID roomId, @NonNull RoomCreateRequest room) {
     var existingRoom = this.findRoomById(roomId);
     var lowerCaseName = room.getName().toLowerCase();
+
+    // New room needs seats as characteristic
+    boolean hasSeats = false;
+    for (Characteristic characteristic : room.getCharacteristics()) {
+      if (characteristic.getType().equalsIgnoreCase("seats")) {
+        hasSeats = true;
+        break;
+      }
+    }
+    if (!hasSeats) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Room without seats shouldn't exists");
+    }
 
     // If name was changed to one that already exist throw an error
     if (!existingRoom.getName().equals(lowerCaseName) && this.repository.existsByName(lowerCaseName)) {
