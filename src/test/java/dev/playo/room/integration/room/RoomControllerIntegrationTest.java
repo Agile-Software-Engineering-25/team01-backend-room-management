@@ -221,4 +221,35 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     RoomEntity unchangedRoom = unchangedRoomOpt.get();
     assertThat(unchangedRoom.getName()).isEqualTo("testroom2"); // original name remains
   }
+
+  @Test
+  void shouldRejectUpdateWhenSeatsCharacteristicIsMissing() throws Exception {
+    // Create and persist a room to be updated
+    RoomEntity targetRoom = TestUtils.createTestRoom(buildingRepository);
+    roomRepository.save(targetRoom);
+
+    // Prepare update request WITHOUT "Seats" characteristic
+    RoomCreateRequest updateRequest = new RoomCreateRequest();
+    updateRequest.setName("updatedroom");
+    updateRequest.setBuildingId(targetRoom.getBuilding().getId());
+    updateRequest.setCharacteristics(List.of(
+      new Characteristic("Whiteboard", 1),
+      new Characteristic("Projector", 1)
+    ));
+
+    // Perform PUT request to update the room
+    mockMvc.perform(put("/rooms/{id}", targetRoom.getId())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(updateRequest)))
+      .andExpect(status().isBadRequest())
+      .andExpect(jsonPath("$.detail").value("Room without seats shouldn't exists"));
+
+    // Verify that the room was not updated
+    Optional<RoomEntity> unchangedRoomOpt = roomRepository.findById(targetRoom.getId());
+    assertThat(unchangedRoomOpt).isPresent();
+
+    RoomEntity unchangedRoom = unchangedRoomOpt.get();
+    assertThat(unchangedRoom.getName()).isEqualTo("testroom"); // original name remains
+  }
+
 }
