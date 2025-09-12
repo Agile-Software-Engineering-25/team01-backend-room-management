@@ -169,8 +169,8 @@ public class RoomServiceTest {
   @Test
   void updateRoomShouldChangeName() {
     // Setup
-    UUID roomId = UUID.fromString("11111111-1111-1111-1111-111111111111");
-    UUID buildingId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+    UUID roomId = UUID.randomUUID();
+    UUID buildingId = UUID.randomUUID();
 
     List<Characteristic> characteristics = List.of(
       new Characteristic("SEATS", 1),
