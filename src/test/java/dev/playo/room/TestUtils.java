@@ -1,6 +1,5 @@
 package dev.playo.room;
 
-import dev.playo.generated.roommanagement.model.BuildingState;
 import dev.playo.generated.roommanagement.model.Characteristic;
 import dev.playo.room.booking.data.BookingEntity;
 import dev.playo.room.building.data.BuildingEntity;
@@ -37,7 +36,6 @@ public final class TestUtils {
     buildingEntity.setName("testBuilding");
     buildingEntity.setDescription("testBuildingDescription");
     buildingEntity.setAddress("testBuildingAddress");
-    buildingEntity.setState(BuildingState.OPEN);
 
     return buildingEntity;
   }
