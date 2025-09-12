@@ -7,6 +7,7 @@ import dev.playo.room.building.data.BuildingRepository;
 import dev.playo.room.exception.GeneralProblemException;
 import dev.playo.room.room.data.RoomEntity;
 import dev.playo.room.room.data.RoomRepository;
+import dev.playo.room.util.Characteristics;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -145,14 +146,12 @@ public class RoomService {
     var lowerCaseName = room.getName().toLowerCase();
 
     // New room needs seats as characteristic
-    boolean hasSeats = false;
-    for (Characteristic characteristic : room.getCharacteristics()) {
-      if (characteristic.getType().equalsIgnoreCase("seats")) {
-        hasSeats = true;
-        break;
-      }
-    }
-    if (!hasSeats) {
+    if (room.getCharacteristics()
+      .stream()
+      .filter(characteristic -> characteristic.getType().equals(Characteristics.SEATS_CHARACTERISTIC))
+      .map(characteristic -> (int) characteristic.getValue())
+      .findAny()
+      .orElse(null) == null) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Room without seats shouldn't exists");
     }
