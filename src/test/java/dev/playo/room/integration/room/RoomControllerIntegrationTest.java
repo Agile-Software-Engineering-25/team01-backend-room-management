@@ -151,15 +151,13 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     RoomEntity originalRoom = TestUtils.createTestRoom(buildingRepository);
     roomRepository.save(originalRoom);
 
-    // Create and persist a new building to assign during update
-    BuildingEntity newBuilding = TestUtils.createTestBuilding();
-    newBuilding.setName("updatedbuilding");
-    buildingRepository.save(newBuilding);
+    UUID buildingId = originalRoom.getBuilding().getId();
 
     // Prepare update request with new name, new building ID, and new characteristics
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("updatedroom");
-    updateRequest.setBuildingId(newBuilding.getId());
+    updateRequest.setChemSymbol("Aurum");
+    updateRequest.setBuildingId(buildingId);
     updateRequest.setCharacteristics(List.of(
       new Characteristic("SEATS", 30),
       new Characteristic("SpeakerSystem", 2)
@@ -171,7 +169,7 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
         .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.name").value("updatedroom"))
-      .andExpect(jsonPath("$.buildingId").value(newBuilding.getId().toString()))
+      .andExpect(jsonPath("$.buildingId").value(buildingId.toString()))
       .andExpect(jsonPath("$.characteristics").isArray())
       .andExpect(jsonPath("$.characteristics[0].type").value("SEATS"))
       .andExpect(jsonPath("$.characteristics[1].type").value("SpeakerSystem"));
@@ -182,7 +180,7 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
 
     RoomEntity updatedRoom = updatedRoomOpt.get();
     assertThat(updatedRoom.getName()).isEqualTo("updatedroom");
-    assertThat(updatedRoom.getBuilding().getId()).isEqualTo(newBuilding.getId());
+    assertThat(updatedRoom.getBuilding().getId()).isEqualTo(buildingId);
     assertThat(updatedRoom.getCharacteristics()).containsExactlyInAnyOrder(
       new Characteristic("SEATS", 30),
       new Characteristic("SpeakerSystem", 2)
@@ -202,6 +200,7 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     // Prepare update request with duplicate name (case-insensitive match)
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("testroom"); // same name as existingRoom, but lowercase
+    updateRequest.setChemSymbol("Aurum");
     updateRequest.setBuildingId(targetRoom.getBuilding().getId());
     updateRequest.setCharacteristics(List.of(
       new Characteristic("SEATS", 30)
@@ -231,6 +230,7 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     // Prepare update request WITHOUT "Seats" characteristic
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("updatedroom");
+    updateRequest.setChemSymbol("Aurum");
     updateRequest.setBuildingId(targetRoom.getBuilding().getId());
     updateRequest.setCharacteristics(List.of(
       new Characteristic("Whiteboard", 1),

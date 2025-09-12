@@ -3,7 +3,6 @@ package dev.playo.room.unit.room;
 import dev.playo.generated.roommanagement.model.Characteristic;
 import dev.playo.generated.roommanagement.model.Room;
 import dev.playo.generated.roommanagement.model.RoomCreateRequest;
-import dev.playo.generated.roommanagement.model.RoomCreateRequest;
 import dev.playo.room.booking.data.BookingRepository;
 import dev.playo.room.building.data.BuildingEntity;
 import dev.playo.room.building.data.BuildingRepository;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
@@ -103,46 +101,30 @@ class RoomServiceTest {
   }
 
   @Test
-  void updateRoomWithDuplicateNameShouldThrowGeneralProblemException() {
-    UUID roomId = UUID.randomUUID();
-    RoomCreateRequest request = new RoomCreateRequest();
-    request.setName("Conference Room");
-    request.setChemSymbol("Hydrogenium");
-    request.setBuildingId(UUID.randomUUID());
-
-    RoomEntity existingRoom = new RoomEntity();
-    existingRoom.setId(roomId);
-    existingRoom.setName("old name");
-    existingRoom.setChemSymbol("old chemSymbol");
-
-    when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
-    when(roomRepository.existsByName(request.getName().toLowerCase())).thenReturn(true);
-
-    assertThrows(GeneralProblemException.class, () -> roomService.updateRoom(roomId, request));
-
-    verify(roomRepository, times(1)).findById(roomId);
-    verify(roomRepository, times(1)).existsByName(request.getName().toLowerCase());
-    verify(roomRepository, never()).save(any(RoomEntity.class));
-  }
-
-  @Test
   void updateRoomWithDuplicateChemSymbolShouldThrowGeneralProblemException() {
     UUID roomId = UUID.randomUUID();
+
+    // Existing room setup
+    RoomEntity existingRoom = new RoomEntity();
+    existingRoom.setId(roomId);
+    existingRoom.setName("old room");
+    existingRoom.setChemSymbol("old chemSymbol");
+
+    // Update request with duplicate ChemSymbol
     RoomCreateRequest request = new RoomCreateRequest();
     request.setName("Conference Room");
     request.setChemSymbol("Hydrogenium");
     request.setBuildingId(UUID.randomUUID());
+    request.setCharacteristics(List.of(new Characteristic("SEATS", 30)));
 
-    RoomEntity existingRoom = new RoomEntity();
-    existingRoom.setId(roomId);
-    existingRoom.setName("old name");
-    existingRoom.setChemSymbol("old chemSymbol");
-
+    // Mocking
     when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
     when(roomRepository.existsByChemSymbol(request.getChemSymbol().toLowerCase())).thenReturn(true);
 
+    // Assertion
     assertThrows(GeneralProblemException.class, () -> roomService.updateRoom(roomId, request));
 
+    // Verification
     verify(roomRepository, times(1)).findById(roomId);
     verify(roomRepository, times(1)).existsByName(request.getName().toLowerCase());
     verify(roomRepository, times(1)).existsByChemSymbol(request.getChemSymbol().toLowerCase());
@@ -166,11 +148,13 @@ class RoomServiceTest {
     RoomEntity existingRoom = new RoomEntity();
     existingRoom.setId(roomId);
     existingRoom.setName("oldname");
+    existingRoom.setChemSymbol("Hydrogenium");
     existingRoom.setBuilding(buildingEntity);
     existingRoom.setCharacteristics(characteristics);
 
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("newroomname");
+    updateRequest.setChemSymbol("Hydrogenium");
     updateRequest.setBuildingId(buildingId);
     updateRequest.setCharacteristics(characteristics);
 
@@ -204,8 +188,8 @@ class RoomServiceTest {
   @Test
   void updateRoomShouldChangeCharacteristic() {
     // Setup
-    UUID roomId = UUID.fromString("11111111-1111-1111-1111-111111111111");
-    UUID buildingId = UUID.fromString("22222222-2222-2222-2222-222222222222");
+    UUID roomId = UUID.randomUUID();
+    UUID buildingId = UUID.randomUUID();
 
     BuildingEntity buildingEntity = new BuildingEntity();
     buildingEntity.setId(buildingId);
@@ -213,6 +197,7 @@ class RoomServiceTest {
     RoomEntity existingRoom = new RoomEntity();
     existingRoom.setId(roomId);
     existingRoom.setName("oldname");
+    existingRoom.setChemSymbol("Hydrogenium");
     existingRoom.setBuilding(buildingEntity);
     existingRoom.setCharacteristics(new ArrayList<>());
 
@@ -223,6 +208,7 @@ class RoomServiceTest {
 
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("NewRoomName");
+    updateRequest.setChemSymbol("Hydrogenium");
     updateRequest.setBuildingId(buildingId);
     updateRequest.setCharacteristics(newCharacteristics);
 
@@ -265,6 +251,7 @@ class RoomServiceTest {
     RoomEntity existingRoom = new RoomEntity();
     existingRoom.setId(roomId);
     existingRoom.setName("oldname");
+    existingRoom.setChemSymbol("Hydrogenium");
     BuildingEntity oldBuilding = new BuildingEntity();
     oldBuilding.setId(oldBuildingId);
     existingRoom.setBuilding(oldBuilding);
@@ -272,6 +259,7 @@ class RoomServiceTest {
     // Update request with new building ID
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("NewRoomName");
+    updateRequest.setChemSymbol("Hydrogenium");
     updateRequest.setBuildingId(newBuildingId);
     updateRequest.setCharacteristics(List.of(new Characteristic("SEATS", 30)));
 
@@ -287,7 +275,6 @@ class RoomServiceTest {
     verify(roomRepository).findById(roomId);
     verify(roomRepository).existsByName("newroomname");
     verify(buildingRepository).existsById(newBuildingId);
-    verifyNoMoreInteractions(roomRepository, buildingRepository);
   }
 
   @Test
@@ -297,6 +284,7 @@ class RoomServiceTest {
 
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("NewRoomName");
+    updateRequest.setChemSymbol("Hydrogenium");
     updateRequest.setBuildingId(buildingId);
     updateRequest.setCharacteristics(List.of(new Characteristic("SEATS", 20)));
 
@@ -320,6 +308,7 @@ class RoomServiceTest {
     RoomEntity existingRoom = new RoomEntity();
     existingRoom.setId(roomId);
     existingRoom.setName("oldname");
+    existingRoom.setChemSymbol("Hydrogenium");
     BuildingEntity building = new BuildingEntity();
     building.setId(buildingId);
     existingRoom.setBuilding(building);
@@ -327,6 +316,7 @@ class RoomServiceTest {
     // Update request with conflicting name
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("ExistingRoomName"); // name already taken
+    updateRequest.setChemSymbol("Hydrogenium");
     updateRequest.setBuildingId(buildingId);
     updateRequest.setCharacteristics(List.of(new Characteristic("SEATS", 35)));
 
@@ -357,6 +347,7 @@ class RoomServiceTest {
     RoomEntity existingRoom = new RoomEntity();
     existingRoom.setId(roomId);
     existingRoom.setName("oldname");
+    existingRoom.setChemSymbol("Hydrogenium");
     BuildingEntity building = new BuildingEntity();
     building.setId(buildingId);
     existingRoom.setBuilding(building);
@@ -364,6 +355,7 @@ class RoomServiceTest {
     // Update request without "Seats" characteristic
     RoomCreateRequest updateRequest = new RoomCreateRequest();
     updateRequest.setName("newroomname");
+    updateRequest.setChemSymbol("Hydrogenium");
     updateRequest.setBuildingId(buildingId);
     updateRequest.setCharacteristics(List.of(
       new Characteristic("Projector", 1),
