@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import dev.playo.generated.roommanagement.model.BuildingCreateRequest;
-import dev.playo.generated.roommanagement.model.BuildingState;
 import dev.playo.generated.roommanagement.model.Characteristic;
 import dev.playo.generated.roommanagement.model.RoomBookingRequest;
 import dev.playo.generated.roommanagement.model.RoomCreateRequest;
@@ -53,7 +52,6 @@ class BookingServiceTest extends AbstractPostgresContainerTest {
     buildingRequest.setName("Test Building");
     buildingRequest.setDescription("Test Building");
     buildingRequest.setAddress("Test Address");
-    buildingRequest.setState(BuildingState.OPEN);
     var building = this.buildingService.createBuilding(buildingRequest);
 
     var roomRequest = new RoomCreateRequest();
@@ -91,7 +89,6 @@ class BookingServiceTest extends AbstractPostgresContainerTest {
     buildingRequest.setName("Test Building");
     buildingRequest.setDescription("Test Building");
     buildingRequest.setAddress("Test Address");
-    buildingRequest.setState(BuildingState.OPEN);
     var building = this.buildingService.createBuilding(buildingRequest);
 
     var roomRequest = new RoomCreateRequest();

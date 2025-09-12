@@ -492,13 +492,10 @@ components:
         description:
           type: string
           description: Description of the building
-        state:
-          $ref: '#/components/schemas/BuildingState'
       required:
         - id
         - name
         - address
-        - state
     BuildingCreateRequest:
       type: object
       properties:
@@ -511,12 +508,9 @@ components:
         description:
           type: string
           description: Description of the building
-        state:
-          $ref: '#/components/schemas/BuildingState'
       required:
         - name
         - address
-        - state
     Room:
       type: object
       properties:
@@ -663,12 +657,6 @@ components:
             $ref: '#/components/schemas/Booking'
       required:
         - bookings
-    BuildingState:
-      type: string
-      description: Describes the operational state of a building.
-      enum:
-        - open
-        - closed
     Booking:
       type: object
       properties:

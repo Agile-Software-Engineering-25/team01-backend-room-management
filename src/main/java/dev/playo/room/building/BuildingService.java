@@ -47,7 +47,6 @@ public class BuildingService {
     buildingEntity.setName(lowerCaseName);
     buildingEntity.setDescription(request.getDescription());
     buildingEntity.setAddress(request.getAddress());
-    buildingEntity.setState(request.getState());
 
     return this.buildingRepository.save(buildingEntity).toBuildingDto();
   }
@@ -75,7 +74,6 @@ public class BuildingService {
     building.setName(lowerCaseName);
     building.setDescription(request.getDescription());
     building.setAddress(request.getAddress());
-    building.setState(request.getState());
 
     return this.buildingRepository.save(building).toBuildingDto();
   }

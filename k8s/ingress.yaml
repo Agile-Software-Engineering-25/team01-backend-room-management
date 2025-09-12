@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: room-mgmt
+  namespace: ase-1
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure # send traffic over HTTPS
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: ["sau-portal.de"]
+      secretName: tls-to-come
+  rules:
+    - host: sau-portal.de
+      http:
+        paths:
+          - path: /ase-1/room-mgmt   # Public URL prefix for this service
+            pathType: Prefix
+            backend:
+              service:
+                name: room-mgmt       # Must match the Service metadata.name
+                port:
+                  number: 80
