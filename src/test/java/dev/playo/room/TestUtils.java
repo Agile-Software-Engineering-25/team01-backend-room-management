@@ -20,7 +20,7 @@ public final class TestUtils {
     BuildingEntity savedBuilding = buildingRepository.save(buildingEntity);
 
     List<Characteristic> characteristics = new ArrayList<>();
-    characteristics.add(new Characteristic("Seats", 30));
+    characteristics.add(new Characteristic("SEATS", 30));
     characteristics.add(new Characteristic("Projector", 1));
 
     RoomEntity room = new RoomEntity();
@@ -40,7 +40,7 @@ public final class TestUtils {
     BuildingEntity savedBuilding = buildingRepository.save(buildingEntity);
 
     List<Characteristic> characteristics = new ArrayList<>();
-    characteristics.add(new Characteristic("Seats", 30));
+    characteristics.add(new Characteristic("SEATS", 30));
     characteristics.add(new Characteristic("Projector", 1));
 
     RoomEntity room = new RoomEntity();

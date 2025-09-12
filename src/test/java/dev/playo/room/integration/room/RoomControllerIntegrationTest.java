@@ -161,7 +161,7 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     updateRequest.setName("updatedroom");
     updateRequest.setBuildingId(newBuilding.getId());
     updateRequest.setCharacteristics(List.of(
-      new Characteristic("Seats", 30),
+      new Characteristic("SEATS", 30),
       new Characteristic("SpeakerSystem", 2)
     ));
 
@@ -173,7 +173,7 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
       .andExpect(jsonPath("$.name").value("updatedroom"))
       .andExpect(jsonPath("$.buildingId").value(newBuilding.getId().toString()))
       .andExpect(jsonPath("$.characteristics").isArray())
-      .andExpect(jsonPath("$.characteristics[0].type").value("Seats"))
+      .andExpect(jsonPath("$.characteristics[0].type").value("SEATS"))
       .andExpect(jsonPath("$.characteristics[1].type").value("SpeakerSystem"));
 
     // Verify that room was updated in the database
@@ -184,7 +184,7 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     assertThat(updatedRoom.getName()).isEqualTo("updatedroom");
     assertThat(updatedRoom.getBuilding().getId()).isEqualTo(newBuilding.getId());
     assertThat(updatedRoom.getCharacteristics()).containsExactlyInAnyOrder(
-      new Characteristic("Seats", 30),
+      new Characteristic("SEATS", 30),
       new Characteristic("SpeakerSystem", 2)
     );
   }
@@ -204,7 +204,7 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     updateRequest.setName("testroom"); // same name as existingRoom, but lowercase
     updateRequest.setBuildingId(targetRoom.getBuilding().getId());
     updateRequest.setCharacteristics(List.of(
-      new Characteristic("Seats", 30)
+      new Characteristic("SEATS", 30)
     ));
 
     // Perform PUT request to update the room
