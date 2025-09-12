@@ -52,9 +52,20 @@ public class RoomService {
         "Room with name %s already exists".formatted(lowerCaseName));
     }
 
+    var lowerCaseChemSymbol = room.getChemSymbol().toLowerCase();
+    if (this.repository.existsByChemSymbol(lowerCaseChemSymbol)) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Room with chemSymbol %s already exists".formatted(lowerCaseChemSymbol));
+    }
+
+    if (!buildingRepository.existsById(room.getBuildingId())) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Building with ID %s does not exist".formatted(room.getBuildingId()));
+    }
+
     var roomEntity = new RoomEntity();
     roomEntity.setName(lowerCaseName);
-    //TODO: might need to validate building existence
+    roomEntity.setChemSymbol(lowerCaseChemSymbol);
     roomEntity.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
     roomEntity.setCharacteristics(room.getCharacteristics());
     var savedRoom = this.repository.save(roomEntity);
@@ -143,7 +154,6 @@ public class RoomService {
 
   public @NonNull Room updateRoom(@NonNull UUID roomId, @NonNull RoomCreateRequest room) {
     var existingRoom = this.findRoomById(roomId);
-    var lowerCaseName = room.getName().toLowerCase();
 
     // New room needs seats as characteristic
     if (room.getCharacteristics()
@@ -157,9 +167,17 @@ public class RoomService {
     }
 
     // If name was changed to one that already exist throw an error
+    var lowerCaseName = room.getName().toLowerCase();
     if (!existingRoom.getName().equals(lowerCaseName) && this.repository.existsByName(lowerCaseName)) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Room with name %s already exists".formatted(lowerCaseName));
+    }
+
+    // If ChemSymbol was changed to one that already exist throw an error
+    var lowerCaseChemSymbol = room.getChemSymbol().toLowerCase();
+    if (!existingRoom.getChemSymbol().equals(lowerCaseChemSymbol) && this.repository.existsByChemSymbol(lowerCaseChemSymbol)) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Room with chemSymbol %s already exists".formatted(lowerCaseChemSymbol));
     }
 
     // If new building doesn't exist throw an error
@@ -170,6 +188,7 @@ public class RoomService {
 
     // Update the values
     existingRoom.setName(lowerCaseName);
+    existingRoom.setChemSymbol(lowerCaseChemSymbol);
     existingRoom.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
     existingRoom.setCharacteristics(room.getCharacteristics());
     var updatedRoom = this.repository.save(existingRoom);

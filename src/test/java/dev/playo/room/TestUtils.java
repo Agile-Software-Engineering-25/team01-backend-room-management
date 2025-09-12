@@ -25,6 +25,7 @@ public final class TestUtils {
 
     RoomEntity room = new RoomEntity();
     room.setName("testroom");
+    room.setChemSymbol("Hydrogenium");
     room.setBuilding(savedBuilding);
     room.setCharacteristics(characteristics);
 
@@ -45,6 +46,7 @@ public final class TestUtils {
 
     RoomEntity room = new RoomEntity();
     room.setName("testroom2");
+    room.setChemSymbol("Aurum");
     room.setBuilding(savedBuilding);
     room.setCharacteristics(characteristics);
 
