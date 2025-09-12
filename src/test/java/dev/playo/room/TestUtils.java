@@ -59,7 +59,6 @@ public final class TestUtils {
     buildingEntity.setName("testBuilding");
     buildingEntity.setDescription("testBuildingDescription");
     buildingEntity.setAddress("testBuildingAddress");
-    buildingEntity.setState(BuildingState.OPEN);
 
     return buildingEntity;
   }
@@ -75,7 +74,6 @@ public final class TestUtils {
     buildingEntity.setName("testBuilding2");
     buildingEntity.setDescription("testBuilding2Description");
     buildingEntity.setAddress("testBuilding2Address");
-    buildingEntity.setState(BuildingState.OPEN);
 
     return buildingEntity;
   }
