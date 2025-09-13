@@ -519,6 +519,8 @@ components:
           format: uuid
         name:
           type: string
+        chemSymbol:
+          type: string
         buildingId:
           type: string
           format: uuid
@@ -537,6 +539,8 @@ components:
       properties:
         name:
           type: string
+        chemSymbol:
+          type: string
         buildingId:
           type: string
           format: uuid
@@ -546,6 +550,7 @@ components:
             $ref: '#/components/schemas/Characteristic'
       required:
         - name
+        - chemSymbol
         - buildingId
         - characteristics
     Characteristic:
