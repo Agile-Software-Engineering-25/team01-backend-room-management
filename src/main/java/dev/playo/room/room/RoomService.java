@@ -1,6 +1,10 @@
 package dev.playo.room.room;
 
-import dev.playo.generated.roommanagement.model.*;
+import dev.playo.generated.roommanagement.model.Booking;
+import dev.playo.generated.roommanagement.model.Room;
+import dev.playo.generated.roommanagement.model.RoomCreateRequest;
+import dev.playo.generated.roommanagement.model.RoomInquiry;
+import dev.playo.generated.roommanagement.model.SearchCharacteristic;
 import dev.playo.room.booking.data.BookingEntity;
 import dev.playo.room.booking.data.BookingRepository;
 import dev.playo.room.building.data.BuildingRepository;
@@ -156,14 +160,12 @@ public class RoomService {
     var existingRoom = this.findRoomById(roomId);
 
     // New room needs seats as characteristic
-    if (room.getCharacteristics()
+    var hasSeats = room.getCharacteristics()
       .stream()
       .filter(characteristic -> characteristic.getType().equals(Characteristics.SEATS_CHARACTERISTIC))
-      .map(characteristic -> (int) characteristic.getValue())
-      .findAny()
-      .orElse(null) == null) {
-      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
-        "Room without seats shouldn't exists");
+      .anyMatch(characteristic -> characteristic.getValue() instanceof Integer seats && seats > 0);
+    if (!hasSeats) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST, "Rooms need to have at least one SEAT");
     }
 
     // If name was changed to one that already exist throw an error
@@ -175,7 +177,8 @@ public class RoomService {
 
     // If ChemSymbol was changed to one that already exist throw an error
     var lowerCaseChemSymbol = room.getChemSymbol().toLowerCase();
-    if (!existingRoom.getChemSymbol().equals(lowerCaseChemSymbol) && this.repository.existsByChemSymbol(lowerCaseChemSymbol)) {
+    if (!existingRoom.getChemSymbol().equals(lowerCaseChemSymbol) && this.repository.existsByChemSymbol(
+      lowerCaseChemSymbol)) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Room with chemSymbol %s already exists".formatted(lowerCaseChemSymbol));
     }

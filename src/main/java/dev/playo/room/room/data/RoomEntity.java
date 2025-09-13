@@ -29,6 +29,7 @@ public class RoomEntity {
 
   private String name;
 
+  @Column(name = "chem_symbol")
   private String chemSymbol;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)

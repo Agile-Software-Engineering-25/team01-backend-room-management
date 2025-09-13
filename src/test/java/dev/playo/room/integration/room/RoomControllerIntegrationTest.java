@@ -242,7 +242,7 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.detail").value("Room without seats shouldn't exists"));
+      .andExpect(jsonPath("$.detail").value("Rooms need to have at least one SEAT"));
 
     // Verify that the room was not updated
     Optional<RoomEntity> unchangedRoomOpt = roomRepository.findById(targetRoom.getId());

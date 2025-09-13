@@ -371,7 +371,7 @@ class RoomServiceTest {
     );
 
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-    assertEquals("Room without seats shouldn't exists", exception.getMessage());
+    assertEquals("Rooms need to have at least one SEAT", exception.getMessage());
 
     // Verify interactions
     verify(roomRepository).findById(roomId);
