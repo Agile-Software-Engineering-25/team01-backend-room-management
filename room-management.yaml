@@ -527,11 +527,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Characteristic'
+        composedOf:
+          type: array
+          items:
+            $ref: '#/components/schemas/Room'
+          description: List of rooms that this room is made of.
       required:
         - id
         - name
         - buildingId
         - characteristics
+        - composedOf
     RoomCreateRequest:
       type: object
       properties:
@@ -544,10 +550,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Characteristic'
+        composedOf:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: List of room IDs that this room is made of.
       required:
         - name
         - buildingId
         - characteristics
+        - composedOf
     Characteristic:
       type: object
       properties:
