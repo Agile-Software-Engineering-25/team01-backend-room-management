@@ -1,16 +1,27 @@
 package dev.playo.room.integration.room;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.playo.generated.roommanagement.model.Characteristic;
 import dev.playo.generated.roommanagement.model.RoomCreateRequest;
 import dev.playo.room.AbstractPostgresContainerTest;
 import dev.playo.room.TestUtils;
 import dev.playo.room.booking.data.BookingEntity;
 import dev.playo.room.booking.data.BookingRepository;
-import dev.playo.room.building.data.BuildingEntity;
 import dev.playo.room.building.data.BuildingRepository;
 import dev.playo.room.integration.TestCleaner;
 import dev.playo.room.room.data.RoomEntity;
 import dev.playo.room.room.data.RoomRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,18 +29,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.*;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
+class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -46,11 +49,71 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
   @Autowired
   private BookingRepository bookingRepository;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  @Autowired
+  private ObjectMapper objectMapper;
 
   @BeforeEach
   void clearDatabase() {
     this.testCleaner.clean();
+  }
+
+  @Test
+  void shouldCreateRoom() throws Exception {
+    var room = TestUtils.createTestRoom(buildingRepository);
+
+    var request = new RoomCreateRequest(
+      room.getName(),
+      room.getChemSymbol(),
+      room.getBuilding().getId(),
+      room.getCharacteristics());
+
+    mockMvc.perform(post("/rooms")
+        .content(this.objectMapper.writeValueAsString(request))
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.name").value(room.getName().toLowerCase()))
+      .andExpect(jsonPath("$.chemSymbol").value(room.getChemSymbol().toLowerCase()))
+      .andExpect(jsonPath("$.buildingId").value(room.getBuilding().getId().toString()))
+      .andExpect(jsonPath("$.characteristics").isArray())
+      .andExpect(jsonPath("$.characteristics[0].type").value("SEATS"))
+      .andExpect(jsonPath("$.characteristics[0].value").value(30))
+      .andExpect(jsonPath("$.characteristics[1].type").value("Projector"))
+      .andExpect(jsonPath("$.characteristics[1].value").value(1));
+
+    List<RoomEntity> rooms = roomRepository.findAll();
+    assertThat(rooms).hasSize(1);
+  }
+
+  @Test
+  void shouldReturn400WhenInvalidRoomName() throws Exception {
+    RoomEntity room = TestUtils.createTestRoom(buildingRepository);
+
+    var request = new RoomCreateRequest(
+      " " + room.getName(),
+      room.getChemSymbol(),
+      room.getBuilding().getId(),
+      room.getCharacteristics());
+
+    mockMvc.perform(post("/rooms")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(this.objectMapper.writeValueAsString(request)))
+      .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void shouldReturn400WhenInvalidChemSymbol() throws Exception {
+    RoomEntity room = TestUtils.createTestRoom(buildingRepository);
+
+    var request = new RoomCreateRequest(
+      room.getName(),
+      " " + room.getChemSymbol(),
+      room.getBuilding().getId(),
+      room.getCharacteristics());
+
+    mockMvc.perform(post("/rooms")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(this.objectMapper.writeValueAsString(request)))
+      .andExpect(status().isBadRequest());
   }
 
   @Test
@@ -117,9 +180,9 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     this.roomRepository.save(room);
 
     this.mockMvc.perform(get("/rooms/{id}/deletable", room.getId())
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.deletable").value(true));
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.deletable").value(true));
   }
 
   @Test
@@ -131,9 +194,9 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     this.bookingRepository.save(bookingEntity);
 
     this.mockMvc.perform(get("/rooms/{id}/deletable", room.getId())
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.deletable").value(false));
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.deletable").value(false));
   }
 
   @Test
@@ -141,8 +204,8 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     var id = UUID.randomUUID();
 
     this.mockMvc.perform(get("/rooms/{id}/deletable", id)
-            .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isNotFound());
+        .contentType(MediaType.APPLICATION_JSON))
+      .andExpect(status().isNotFound());
   }
 
   @Test
@@ -251,5 +314,4 @@ public class RoomControllerIntegrationTest extends AbstractPostgresContainerTest
     RoomEntity unchangedRoom = unchangedRoomOpt.get();
     assertThat(unchangedRoom.getName()).isEqualTo("testroom"); // original name remains
   }
-
 }

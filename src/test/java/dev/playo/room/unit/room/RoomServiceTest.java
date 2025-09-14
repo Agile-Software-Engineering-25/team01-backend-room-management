@@ -11,6 +11,7 @@ import dev.playo.room.room.RoomService;
 import dev.playo.room.room.data.RoomEntity;
 import dev.playo.room.room.data.RoomRepository;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -199,7 +200,7 @@ class RoomServiceTest {
     existingRoom.setName("oldname");
     existingRoom.setChemSymbol("Hydrogenium");
     existingRoom.setBuilding(buildingEntity);
-    existingRoom.setCharacteristics(new ArrayList<>());
+    existingRoom.setCharacteristics(List.of(new Characteristic("SEATS", 20)));
 
     List<Characteristic> newCharacteristics = List.of(
       new Characteristic("SEATS", 1),
@@ -379,5 +380,133 @@ class RoomServiceTest {
     verify(roomRepository, never()).existsByName(anyString());
   }
 
+  @Test
+  void createRoom_withDuplicateName_shouldThrowGeneralProblemException() {
+    RoomCreateRequest request = new RoomCreateRequest();
+    request.setName("Conference Room");
+    request.setChemSymbol("Hydrogenium");
+    request.setBuildingId(UUID.randomUUID());
+    request.setCharacteristics(List.of(new Characteristic("SEATS", 1)));
+
+    when(roomRepository.existsByName(request.getName().toLowerCase())).thenReturn(true);
+
+    assertThrows(GeneralProblemException.class, () -> roomService.createRoom(request));
+
+    verify(roomRepository, times(1)).existsByName(request.getName().toLowerCase());
+    verify(roomRepository, never()).save(any(RoomEntity.class));
+  }
+
+  @Test
+  void createRoom_withDuplicateChemSymbol_shouldThrowGeneralProblemException() {
+    RoomCreateRequest request = new RoomCreateRequest();
+    request.setName("Conference Room");
+    request.setChemSymbol("Hydrogenium");
+    request.setBuildingId(UUID.randomUUID());
+    request.setCharacteristics(List.of(new Characteristic("SEATS", 1)));
+
+    when(roomRepository.existsByChemSymbol(request.getChemSymbol().toLowerCase())).thenReturn(true);
+
+    assertThrows(GeneralProblemException.class, () -> roomService.createRoom(request));
+
+    verify(roomRepository, times(1)).existsByName(request.getName().toLowerCase());
+    verify(roomRepository, never()).save(any(RoomEntity.class));
+  }
+
+  @Test
+  void createRoom_withNonExistingBuildingId_shouldThrowGeneralProblemException() {
+    RoomCreateRequest request = new RoomCreateRequest();
+    request.setName("Conference Room");
+    request.setChemSymbol("Hydrogenium");
+    request.setBuildingId(UUID.randomUUID());
+    request.setCharacteristics(List.of(new Characteristic("SEATS", 1)));
+
+    when(roomRepository.existsByName(request.getName().toLowerCase())).thenReturn(false);
+    when(roomRepository.existsByChemSymbol(request.getChemSymbol().toLowerCase())).thenReturn(false);
+    when(buildingRepository.existsById(request.getBuildingId())).thenReturn(false);
+
+    assertThrows(GeneralProblemException.class, () -> roomService.createRoom(request));
+
+    verify(roomRepository, times(1)).existsByName(request.getName().toLowerCase());
+    verify(roomRepository, times(1)).existsByChemSymbol(request.getChemSymbol().toLowerCase());
+    verify(buildingRepository, times(1)).existsById(request.getBuildingId());
+    verify(roomRepository, never()).save(any(RoomEntity.class));
+  }
+
+  @Test
+  void updateRoom_withDuplicateName_shouldThrowGeneralProblemException() {
+    UUID roomId = UUID.randomUUID();
+    RoomCreateRequest request = new RoomCreateRequest();
+    request.setName("Conference Room");
+    request.setChemSymbol("Hydrogenium");
+    request.setBuildingId(UUID.randomUUID());
+    request.setCharacteristics(List.of(new Characteristic("SEATS", 1)));
+
+    RoomEntity existingRoom = new RoomEntity();
+    existingRoom.setId(roomId);
+    existingRoom.setName("old name");
+    existingRoom.setChemSymbol("old chemSymbol");
+
+    when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
+    when(roomRepository.existsByName(request.getName().toLowerCase())).thenReturn(true);
+
+    assertThrows(GeneralProblemException.class, () -> roomService.updateRoom(roomId, request));
+
+    verify(roomRepository, times(1)).findById(roomId);
+    verify(roomRepository, times(1)).existsByName(request.getName().toLowerCase());
+    verify(roomRepository, never()).save(any(RoomEntity.class));
+  }
+
+  @Test
+  void updateRoom_withDuplicateChemSymbol_shouldThrowGeneralProblemException() {
+    UUID roomId = UUID.randomUUID();
+    RoomCreateRequest request = new RoomCreateRequest();
+    request.setName("Conference Room");
+    request.setChemSymbol("Hydrogenium");
+    request.setBuildingId(UUID.randomUUID());
+    request.setCharacteristics(List.of(new Characteristic("SEATS", 1)));
+
+    RoomEntity existingRoom = new RoomEntity();
+    existingRoom.setId(roomId);
+    existingRoom.setName("old name");
+    existingRoom.setChemSymbol("old chemSymbol");
+
+    when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
+    when(roomRepository.existsByChemSymbol(request.getChemSymbol().toLowerCase())).thenReturn(true);
+
+    assertThrows(GeneralProblemException.class, () -> roomService.updateRoom(roomId, request));
+
+    verify(roomRepository, times(1)).findById(roomId);
+    verify(roomRepository, times(1)).existsByName(request.getName().toLowerCase());
+    verify(roomRepository, times(1)).existsByChemSymbol(request.getChemSymbol().toLowerCase());
+    verify(roomRepository, never()).save(any(RoomEntity.class));
+  }
+
+  @Test
+  void updateRoom_withNonExistingBuildingId_shouldThrowGeneralProblemException() {
+    UUID roomId = UUID.randomUUID();
+    RoomCreateRequest request = new RoomCreateRequest();
+    request.setName("Conference Room");
+    request.setChemSymbol("Hydrogenium");
+    request.setBuildingId(UUID.randomUUID());
+    request.setCharacteristics(List.of(new Characteristic("SEATS", 1)));
+
+    RoomEntity existingRoom = new RoomEntity();
+    existingRoom.setId(roomId);
+    existingRoom.setName("old name");
+    existingRoom.setChemSymbol("old chemSymbol");
+
+    when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
+    when(roomRepository.existsByName(request.getName().toLowerCase())).thenReturn(false);
+    when(roomRepository.existsByChemSymbol(request.getChemSymbol().toLowerCase())).thenReturn(false);
+    when(buildingRepository.existsById(request.getBuildingId())).thenReturn(false);
+
+    assertThrows(GeneralProblemException.class, () -> roomService.updateRoom(roomId, request));
+
+    verify(roomRepository, times(1)).findById(roomId);
+    verify(roomRepository, times(1)).existsByName(request.getName().toLowerCase());
+    verify(roomRepository, times(1)).existsByChemSymbol(request.getChemSymbol().toLowerCase());
+    verify(buildingRepository, times(1)).existsById(request.getBuildingId());
+    verify(roomRepository, never()).save(any(RoomEntity.class));
+  }
 }
 

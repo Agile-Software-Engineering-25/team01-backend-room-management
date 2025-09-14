@@ -170,23 +170,18 @@ public class RoomService {
 
     // If name was changed to one that already exist throw an error
     var lowerCaseName = room.getName().toLowerCase();
+    var lowerCaseChemSymbol = room.getChemSymbol().toLowerCase();
     if (!existingRoom.getName().equals(lowerCaseName) && this.repository.existsByName(lowerCaseName)) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Room with name %s already exists".formatted(lowerCaseName));
     }
-
-    // If ChemSymbol was changed to one that already exist throw an error
-    var lowerCaseChemSymbol = room.getChemSymbol().toLowerCase();
-    if (!existingRoom.getChemSymbol().equals(lowerCaseChemSymbol) && this.repository.existsByChemSymbol(
-      lowerCaseChemSymbol)) {
+    if (!existingRoom.getChemSymbol().equals(lowerCaseChemSymbol) && this.repository.existsByChemSymbol(lowerCaseChemSymbol)) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Room with chemSymbol %s already exists".formatted(lowerCaseChemSymbol));
     }
-
-    // If new building doesn't exist throw an error
     if (!buildingRepository.existsById(room.getBuildingId())) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
-        "Building with ID %s does not exists".formatted(room.getBuildingId()));
+        "Building with ID %s does not exist".formatted(room.getBuildingId()));
     }
 
     // Update the values

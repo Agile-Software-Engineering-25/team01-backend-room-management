@@ -483,6 +483,7 @@ components:
           description: Unique identifier for a building
         name:
           type: string
+          pattern: '^[A-Za-z0-9\-\.:]+$'
           description: Name of the building
           example: "Main Campus"
         address:
@@ -502,6 +503,7 @@ components:
         name:
           type: string
           description: Name of the building
+          pattern: '^[A-Za-z0-9\-\.:]+$'
         address:
           type: string
           description: Street address of the building
@@ -521,6 +523,7 @@ components:
           type: string
         chemSymbol:
           type: string
+          pattern: '^[A-Za-z0-9\-\.:]+$'
         buildingId:
           type: string
           format: uuid
@@ -539,8 +542,10 @@ components:
       properties:
         name:
           type: string
+          pattern: '^[A-Za-z0-9\-\.:]+$'
         chemSymbol:
           type: string
+          pattern: '^[A-Za-z0-9\-\.:]+$'
         buildingId:
           type: string
           format: uuid
