@@ -537,6 +537,7 @@ components:
         - name
         - buildingId
         - characteristics
+        - chemSymbol
     RoomCreateRequest:
       type: object
       properties:
