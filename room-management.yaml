@@ -504,6 +504,8 @@ components:
           type: string
           description: Name of the building
           pattern: '^[A-Za-z0-9\-\.:]+$'
+          minLength: 1
+          maxLength: 16
         address:
           type: string
           description: Street address of the building
@@ -544,9 +546,13 @@ components:
         name:
           type: string
           pattern: '^[A-Za-z0-9\-\.:]+$'
+          minLength: 1
+          maxLength: 16
         chemSymbol:
           type: string
           pattern: '^[A-Za-z0-9\-\.:]+$'
+          minLength: 1
+          maxLength: 16
         buildingId:
           type: string
           format: uuid
