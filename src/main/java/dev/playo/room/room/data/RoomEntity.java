@@ -33,6 +33,9 @@ public class RoomEntity {
 
   private String name;
 
+  @Column(name = "chem_symbol")
+  private String chemSymbol;
+
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   private BuildingEntity building;
 
@@ -51,6 +54,7 @@ public class RoomEntity {
     return new Room()
       .id(this.getId())
       .name(this.getName())
+      .chemSymbol(this.getChemSymbol())
       .buildingId(this.building.getId())
       .characteristics(this.getCharacteristics())
       .composedOf(this.composedOf.stream().map(RoomEntity::toRoomDto).toList());

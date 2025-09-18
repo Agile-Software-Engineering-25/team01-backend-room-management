@@ -50,11 +50,13 @@ class BookingServiceTest extends AbstractPostgresContainerTest {
   void createBookingPersistsAllDataCorrectly() {
     var buildingRequest = new BuildingCreateRequest();
     buildingRequest.setName("Test Building");
+    buildingRequest.setDescription("Test Building");
     buildingRequest.setAddress("Test Address");
     var building = this.buildingService.createBuilding(buildingRequest);
 
     var roomRequest = new RoomCreateRequest();
     roomRequest.setName("Test Room");
+    roomRequest.setChemSymbol("Hydrogenium");
     roomRequest.setBuildingId(building.getId());
     var seatsCharacteristic = new Characteristic();
     seatsCharacteristic.setType(Characteristics.SEATS_CHARACTERISTIC);
@@ -85,11 +87,13 @@ class BookingServiceTest extends AbstractPostgresContainerTest {
   void createBookingThrowsOnDuplicateBooking() {
     var buildingRequest = new BuildingCreateRequest();
     buildingRequest.setName("Test Building");
+    buildingRequest.setDescription("Test Building");
     buildingRequest.setAddress("Test Address");
     var building = this.buildingService.createBuilding(buildingRequest);
 
     var roomRequest = new RoomCreateRequest();
     roomRequest.setName("Test Room");
+    roomRequest.setChemSymbol("Hydrogenium");
     roomRequest.setBuildingId(building.getId());
     var seatsCharacteristic = new Characteristic();
     seatsCharacteristic.setType(Characteristics.SEATS_CHARACTERISTIC);

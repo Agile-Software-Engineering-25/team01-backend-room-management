@@ -483,6 +483,7 @@ components:
           description: Unique identifier for a building
         name:
           type: string
+          pattern: '^[A-Za-z0-9\-\.:]+$'
           description: Name of the building
           example: "Main Campus"
         address:
@@ -502,6 +503,9 @@ components:
         name:
           type: string
           description: Name of the building
+          pattern: '^[A-Za-z0-9\-\.:]+$'
+          minLength: 1
+          maxLength: 16
         address:
           type: string
           description: Street address of the building
@@ -519,6 +523,9 @@ components:
           format: uuid
         name:
           type: string
+        chemSymbol:
+          type: string
+          pattern: '^[A-Za-z0-9\-\.:]+$'
         buildingId:
           type: string
           format: uuid
@@ -537,12 +544,21 @@ components:
         - name
         - buildingId
         - characteristics
+        - chemSymbol
         - composedOf
     RoomCreateRequest:
       type: object
       properties:
         name:
           type: string
+          pattern: '^[A-Za-z0-9\-\.:]+$'
+          minLength: 1
+          maxLength: 16
+        chemSymbol:
+          type: string
+          pattern: '^[A-Za-z0-9\-\.:]+$'
+          minLength: 1
+          maxLength: 16
         buildingId:
           type: string
           format: uuid
@@ -558,6 +574,7 @@ components:
           description: List of room IDs that this room is made of.
       required:
         - name
+        - chemSymbol
         - buildingId
         - characteristics
         - composedOf
