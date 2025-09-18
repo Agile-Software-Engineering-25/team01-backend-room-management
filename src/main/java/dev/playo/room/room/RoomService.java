@@ -49,6 +49,7 @@ public class RoomService {
     this.buildingRepository = buildingRepository;
   }
 
+  @Transactional
   public @NonNull Room createRoom(@NonNull RoomCreateRequest room) {
     var lowerCaseName = room.getName().toLowerCase();
     if (this.repository.existsByName(lowerCaseName)) {
@@ -62,12 +63,30 @@ public class RoomService {
         "Room with chemSymbol %s already exists".formatted(lowerCaseChemSymbol));
     }
 
-    if (!buildingRepository.existsById(room.getBuildingId())) {
+    if (!this.buildingRepository.existsById(room.getBuildingId())) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Building with ID %s does not exist".formatted(room.getBuildingId()));
     }
 
     var roomEntity = new RoomEntity();
+    for (var childRoomId : room.getComposedOf()) {
+      var childRoom = this.findRoomById(childRoomId);
+      if (childRoom.getParent() != null) {
+        throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+          "Room %s is already part of a composite room".formatted(childRoom.getId()));
+      }
+
+      if (!childRoom.getComposedOf().isEmpty()) {
+        throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+          "Room %s is a composite room and cannot be part of another composite room".formatted(childRoom.getId()));
+      }
+
+      childRoom.setParent(roomEntity);
+
+      roomEntity.getComposedOf().add(childRoom);
+      this.repository.save(childRoom);
+    }
+
     roomEntity.setName(lowerCaseName);
     roomEntity.setChemSymbol(lowerCaseChemSymbol);
     roomEntity.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
@@ -175,13 +194,33 @@ public class RoomService {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Room with name %s already exists".formatted(lowerCaseName));
     }
-    if (!existingRoom.getChemSymbol().equals(lowerCaseChemSymbol) && this.repository.existsByChemSymbol(lowerCaseChemSymbol)) {
+    if (!existingRoom.getChemSymbol().equals(lowerCaseChemSymbol) &&
+      this.repository.existsByChemSymbol(lowerCaseChemSymbol)) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Room with chemSymbol %s already exists".formatted(lowerCaseChemSymbol));
     }
-    if (!buildingRepository.existsById(room.getBuildingId())) {
+    if (!this.buildingRepository.existsById(room.getBuildingId())) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
         "Building with ID %s does not exist".formatted(room.getBuildingId()));
+    }
+
+    existingRoom.getComposedOf().clear();
+    for (var childRoomId : room.getComposedOf()) {
+      var childRoom = this.findRoomById(childRoomId);
+      if (childRoom.getParent() != null && !childRoom.getParent().getId().equals(roomId)) {
+        throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+          "Room %s is already part of a composite room".formatted(childRoom.getId()));
+      }
+
+      if (!childRoom.getComposedOf().isEmpty()) {
+        throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+          "Room %s is a composite room and cannot be part of another composite room".formatted(childRoom.getId()));
+      }
+
+      childRoom.setParent(existingRoom);
+
+      existingRoom.getComposedOf().add(childRoom);
+      this.repository.save(childRoom);
     }
 
     // Update the values
@@ -202,6 +241,12 @@ public class RoomService {
   @Transactional
   public void deleteRoomById(@NonNull UUID roomId, boolean forceDelete) {
     var room = this.findRoomById(roomId);
+    if (room.getParent() != null) {
+      throw new GeneralProblemException(
+        HttpStatus.BAD_REQUEST,
+        "Room with name %s is part of a composite room and cannot be deleted".formatted(room.getName()));
+    }
+
     if (forceDelete) {
       this.forceDeleteRoom(room);
       return;

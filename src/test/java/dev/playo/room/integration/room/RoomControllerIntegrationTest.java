@@ -65,7 +65,8 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       room.getName(),
       room.getChemSymbol(),
       room.getBuilding().getId(),
-      room.getCharacteristics());
+      room.getCharacteristics(),
+      List.of());
 
     mockMvc.perform(post("/rooms")
         .content(this.objectMapper.writeValueAsString(request))
@@ -92,7 +93,8 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       " " + room.getName(),
       room.getChemSymbol(),
       room.getBuilding().getId(),
-      room.getCharacteristics());
+      room.getCharacteristics(),
+      List.of());
 
     mockMvc.perform(post("/rooms")
         .contentType(MediaType.APPLICATION_JSON)
@@ -108,7 +110,8 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       room.getName(),
       " " + room.getChemSymbol(),
       room.getBuilding().getId(),
-      room.getCharacteristics());
+      room.getCharacteristics(),
+      List.of());
 
     mockMvc.perform(post("/rooms")
         .contentType(MediaType.APPLICATION_JSON)

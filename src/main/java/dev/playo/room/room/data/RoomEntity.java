@@ -12,11 +12,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
@@ -25,6 +27,7 @@ import org.hibernate.type.SqlTypes;
 @Data
 @Entity
 @Table(name = "rooms")
+@EqualsAndHashCode(of = "id")
 public class RoomEntity {
 
   @Id
@@ -48,7 +51,7 @@ public class RoomEntity {
   private RoomEntity parent;
 
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "parent")
-  private Set<RoomEntity> composedOf;
+  private Set<RoomEntity> composedOf = new HashSet<>();
 
   public @NonNull Room toRoomDto() {
     return new Room()
@@ -57,6 +60,6 @@ public class RoomEntity {
       .chemSymbol(this.getChemSymbol())
       .buildingId(this.building.getId())
       .characteristics(this.getCharacteristics())
-      .composedOf(this.composedOf.stream().map(RoomEntity::toRoomDto).toList());
+      .composedOf(this.composedOf.stream().map(RoomEntity::getId).toList());
   }
 }
