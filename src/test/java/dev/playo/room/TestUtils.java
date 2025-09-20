@@ -14,70 +14,35 @@ public final class TestUtils {
 
   private TestUtils(){}
 
-  public static RoomEntity createTestRoom(BuildingRepository buildingRepository){
-    BuildingEntity buildingEntity = createTestBuilding();
-    BuildingEntity savedBuilding = buildingRepository.save(buildingEntity);
+  public static RoomEntity createTestRoom(BuildingEntity building) {
+    return createTestRoom(building, "testroom", "Hydrogenium");
+  }
 
+  public static RoomEntity createTestRoom(BuildingEntity building, String name, String chemSymbol) {
     List<Characteristic> characteristics = new ArrayList<>();
     characteristics.add(new Characteristic("SEATS", 30));
     characteristics.add(new Characteristic("Projector", 1));
 
     RoomEntity room = new RoomEntity();
-    room.setName("testroom");
-    room.setChemSymbol("Hydrogenium");
-    room.setBuilding(savedBuilding);
+    room.setName(name);
+    room.setChemSymbol(chemSymbol);
+    room.setBuilding(building);
     room.setCharacteristics(characteristics);
 
     return room;
   }
 
-  /**
-   * A second version of createTestRoom
-   * Sometimes a second room is needed, but you can't call createTestRoom twice as it causes key errors
-   */
-  public static RoomEntity createTestRoom2(BuildingRepository buildingRepository){
-    BuildingEntity buildingEntity = createTestBuilding2();
-    BuildingEntity savedBuilding = buildingRepository.save(buildingEntity);
-
-    List<Characteristic> characteristics = new ArrayList<>();
-    characteristics.add(new Characteristic("SEATS", 30));
-    characteristics.add(new Characteristic("Projector", 1));
-
-    RoomEntity room = new RoomEntity();
-    room.setName("testroom2");
-    room.setChemSymbol("Aurum");
-    room.setBuilding(savedBuilding);
-    room.setCharacteristics(characteristics);
-
-    return room;
-  }
-
-  public static BuildingEntity createTestBuilding(){
+  public static BuildingEntity createTestBuilding(BuildingRepository buildingRepository) {
     BuildingEntity buildingEntity = new BuildingEntity();
 
     buildingEntity.setName("testBuilding");
     buildingEntity.setDescription("testBuildingDescription");
     buildingEntity.setAddress("testBuildingAddress");
 
-    return buildingEntity;
+    return buildingRepository.save(buildingEntity);
   }
 
-  /**
-   * A second version of createTestBuilding
-   * Sometimes a second building is needed, but you can't call createTestBuilding twice as it causes key errors
-   * Also used for createTestRoom2 because in createTestRoom createTestBuilding is used
-   */
-  public static BuildingEntity createTestBuilding2(){
-    BuildingEntity buildingEntity = new BuildingEntity();
-
-    buildingEntity.setName("testBuilding2");
-    buildingEntity.setDescription("testBuilding2Description");
-    buildingEntity.setAddress("testBuilding2Address");
-
-    return buildingEntity;
-  }
-
-  public static BookingEntity createTestBooking(RoomEntity room){
+  public static BookingEntity createTestBooking(RoomEntity room) {
     Set<UUID> lecturerIds = new HashSet<>();
     lecturerIds.add(UUID.randomUUID());
     Set<UUID> studentGroupIds = new HashSet<>();

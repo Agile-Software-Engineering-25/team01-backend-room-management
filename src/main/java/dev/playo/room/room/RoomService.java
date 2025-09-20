@@ -49,8 +49,14 @@ public class RoomService {
     this.buildingRepository = buildingRepository;
   }
 
+  //TODO: rooms need to be in same building in order to create composite
   @Transactional
   public @NonNull Room createRoom(@NonNull RoomCreateRequest room) {
+    if (room.getComposedOf().size() == 1) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Composite rooms need to have at least two child rooms");
+    }
+
     var lowerCaseName = room.getName().toLowerCase();
     if (this.repository.existsByName(lowerCaseName)) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
@@ -185,6 +191,11 @@ public class RoomService {
       .anyMatch(characteristic -> characteristic.getValue() instanceof Integer seats && seats > 0);
     if (!hasSeats) {
       throw new GeneralProblemException(HttpStatus.BAD_REQUEST, "Rooms need to have at least one SEAT");
+    }
+
+    if (room.getComposedOf().size() == 1) {
+      throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+        "Composite rooms need to have at least two child rooms");
     }
 
     // If name was changed to one that already exist throw an error
