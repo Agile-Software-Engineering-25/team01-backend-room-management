@@ -77,14 +77,14 @@ class BookingServiceTest {
     when(roomService.findRoomById(request.getRoomId())).thenReturn(room);
 
     var bookingEntity = mock(BookingEntity.class);
-    when(bookingRepository.save(any())).thenReturn(bookingEntity);
+    when(bookingRepository.saveAndFlush(any())).thenReturn(bookingEntity);
     var bookingDto = mock(Booking.class);
     when(bookingEntity.toBookingDto()).thenReturn(bookingDto);
 
     var result = bookingService.createBooking(request);
 
     assertNotNull(result);
-    verify(bookingRepository).save(any());
+    verify(bookingRepository).saveAndFlush(any());
   }
 
   @Test
@@ -168,10 +168,11 @@ class BookingServiceTest {
 
     var room = mock(RoomEntity.class);
     when(room.getName()).thenReturn("Raum 1");
+    when(room.getComposedOf()).thenReturn(Set.of());
     when(room.getCharacteristics()).thenReturn(List.of(seatsCharacteristic));
     when(this.roomService.findRoomById(request.getRoomId())).thenReturn(room);
 
-    when(this.bookingRepository.save(any())).thenThrow(new DataIntegrityViolationException("overlap"));
+    when(this.bookingRepository.saveAndFlush(any())).thenThrow(new DataIntegrityViolationException("overlap"));
 
     var ex = assertThrows(GeneralProblemException.class, () -> bookingService.createBooking(request));
     assertEquals(HttpStatus.CONFLICT, ex.getStatus());

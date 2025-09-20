@@ -7,11 +7,17 @@ import dev.playo.generated.roommanagement.model.Booking;
 import dev.playo.generated.roommanagement.model.RoomBookingRequest;
 import dev.playo.room.booking.data.BookingEntity;
 import dev.playo.room.booking.data.BookingRepository;
+import dev.playo.room.booking.data.allocation.BookingAllocation;
+import dev.playo.room.booking.data.allocation.BookingAllocationId;
 import dev.playo.room.config.BusinessConfiguration;
 import dev.playo.room.exception.GeneralProblemException;
 import dev.playo.room.room.RoomService;
+import dev.playo.room.room.data.RoomEntity;
 import dev.playo.room.util.Characteristics;
+import jakarta.transaction.Transactional;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -21,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
 @Service
@@ -41,6 +48,7 @@ public class BookingService {
     this.businessConfiguration = businessConfiguration;
   }
 
+  @Transactional
   public @NonNull Booking createBooking(@NonNull RoomBookingRequest request) {
     log.info(
       "Creating booking for room {} from {} to {}",
@@ -104,12 +112,37 @@ public class BookingService {
 
     this.ensureEnoughSeatsPresent(availableSeats, request.getGroupSize(), request.getStudentGroupIds());
 
+    var startInstant = toInstant(request.getStartTime());
+    var endInstant = toInstant(request.getEndTime());
+
     var bookingEntity = new BookingEntity();
     bookingEntity.setRoom(requestedRoom);
-    bookingEntity.setStartTime(toInstant(request.getStartTime()));
-    bookingEntity.setEndTime(toInstant(request.getEndTime()));
+    bookingEntity.setStartTime(startInstant);
+    bookingEntity.setEndTime(endInstant);
     bookingEntity.setLecturerIds(request.getLecturerIds());
     bookingEntity.setStudentGroupIds(request.getStudentGroupIds());
+
+    List<RoomEntity> composedRooms = new ArrayList<>();
+    composedRooms.add(requestedRoom);
+    composedRooms.addAll(requestedRoom.getComposedOf());
+
+    var parentRoom = requestedRoom.getParent();
+    if (parentRoom != null) {
+      composedRooms.add(parentRoom);
+    }
+
+    for (var roomToAllocate : composedRooms) {
+      var allocation = new BookingAllocation();
+      var allocationId = new BookingAllocationId();
+
+      allocation.setId(allocationId);
+      allocation.setRoom(roomToAllocate);
+      allocation.setBooking(bookingEntity);
+      allocation.setStartTime(startInstant);
+      allocation.setEndTime(endInstant);
+
+      bookingEntity.getAllocations().add(allocation);
+    }
 
     log.info(
       "Entering booking creation for room {} from {} to {}",
@@ -117,7 +150,7 @@ public class BookingService {
       request.getStartTime(),
       request.getEndTime());
     try {
-      var booking = this.bookingRepository.save(bookingEntity);
+      var booking = this.bookingRepository.saveAndFlush(bookingEntity);
       log.info("Booking for room {} created with ID {}", requestedRoom.getName(), booking.getId());
       return booking.toBookingDto();
     } catch (DataIntegrityViolationException exception) {
