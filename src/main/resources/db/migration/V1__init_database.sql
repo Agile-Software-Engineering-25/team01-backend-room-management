@@ -18,6 +18,7 @@ CREATE TABLE rooms
   parent_room_id  uuid        NULL,
 
   CONSTRAINT unique_rooms_name UNIQUE (name),
+  CONSTRAINT unique_rooms_chem_symbol UNIQUE (chem_symbol),
   CONSTRAINT fk_rooms_on_buildings
     FOREIGN KEY (building_id) REFERENCES buildings (id),
   CONSTRAINT fk_rooms_on_parent

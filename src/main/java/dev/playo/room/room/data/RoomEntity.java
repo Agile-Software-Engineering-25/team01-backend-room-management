@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
@@ -27,6 +28,7 @@ import org.hibernate.type.SqlTypes;
 @Data
 @Entity
 @Table(name = "rooms")
+@ToString(of = "id")
 @EqualsAndHashCode(of = "id")
 public class RoomEntity {
 

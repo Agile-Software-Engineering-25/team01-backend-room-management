@@ -181,6 +181,7 @@ public class RoomService {
       .toList();
   }
 
+  @Transactional
   public @NonNull Room updateRoom(@NonNull UUID roomId, @NonNull RoomCreateRequest room) {
     var existingRoom = this.findRoomById(roomId);
 
@@ -215,7 +216,9 @@ public class RoomService {
         "Building with ID %s does not exist".formatted(room.getBuildingId()));
     }
 
+    this.repository.unsetParentForAllChildren(existingRoom.getId());
     existingRoom.getComposedOf().clear();
+
     for (var childRoomId : room.getComposedOf()) {
       var childRoom = this.findRoomById(childRoomId);
       if (childRoom.getParent() != null && !childRoom.getParent().getId().equals(roomId)) {

@@ -480,8 +480,9 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     var reChild2 = roomRepository.findById(child2.getId()).orElseThrow();
     var reChild3 = roomRepository.findById(child3.getId()).orElseThrow();
     var reChild4 = roomRepository.findById(child4.getId()).orElseThrow();
-    assertThat(reChild1.getParent()).isNull();
-    assertThat(reChild2.getParent()).isNull();
+
+    assertThat(reChild1.getParent() == null).isTrue();
+    assertThat(reChild2.getParent() == null).isTrue();
     assertThat(reChild3.getParent()).isNotNull();
     assertThat(reChild4.getParent()).isNotNull();
   }
