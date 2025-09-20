@@ -60,8 +60,8 @@ public class RoomEntity {
       .id(this.getId())
       .name(this.getName())
       .chemSymbol(this.getChemSymbol())
-      .buildingId(this.building.getId())
+      .buildingId(this.getBuilding().getId())
       .characteristics(this.getCharacteristics())
-      .composedOf(this.composedOf.stream().map(RoomEntity::getId).toList());
+      .composedOf(this.composedOf.stream().map(RoomEntity::toRoomDto).toList());
   }
 }

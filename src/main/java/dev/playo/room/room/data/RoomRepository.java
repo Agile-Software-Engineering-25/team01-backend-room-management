@@ -18,7 +18,9 @@ public interface RoomRepository extends JpaRepository<RoomEntity, UUID> {
 
   List<RoomEntity> findRoomEntityByBuildingId(UUID buildingId);
 
-  @Query(value = "SELECT * FROM rooms WHERE rooms.parent_room_id IS NULL AND NOT EXISTS(SELECT 1 FROM rooms as child WHERE child.parent_room_id = rooms.id)", nativeQuery = true)
+  @Query(
+    value = "SELECT * FROM rooms WHERE rooms.parent_room_id IS NULL AND NOT EXISTS(SELECT 1 FROM rooms as child WHERE child.parent_room_id = rooms.id)",
+    nativeQuery = true)
   List<RoomEntity> findRoomsEligibleForComposing();
 }
 

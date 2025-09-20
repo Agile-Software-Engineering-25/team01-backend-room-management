@@ -545,9 +545,8 @@ components:
         composedOf:
           type: array
           items:
-            type: string
-            format: uuid
-          description: List of room IDs that this room is made of.
+            $ref: '#/components/schemas/Room'
+          description: List of rooms this room is made of.
       required:
         - id
         - name
