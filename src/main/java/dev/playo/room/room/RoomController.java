@@ -56,8 +56,15 @@ public class RoomController implements RoomsApi {
   }
 
   @Override
-  public ResponseEntity<GetAllRoomsResponse> getRooms() {
-    return ResponseEntity.ok(new GetAllRoomsResponse(this.roomService.allKnownRooms()));
+  public ResponseEntity<GetAllRoomsResponse> getRooms(Boolean composable) {
+    var response = new GetAllRoomsResponse();
+    if (composable != null && composable) {
+      response.setRooms(this.roomService.composingEligibleRooms());
+    } else {
+      response.setRooms(this.roomService.allKnownRooms());
+    }
+
+    return ResponseEntity.ok(response);
   }
 
   @Override

@@ -160,6 +160,14 @@ paths:
       tags:
         - Rooms
       operationId: getRooms
+      parameters:
+        - name: composable
+          in: query
+          required: false
+          schema:
+            default: false
+            type: boolean
+            description: If true, only returns rooms that can be used to compose a new room.
       responses:
         '200':
           description: Success. Returns a list of all known rooms.

@@ -166,6 +166,13 @@ public class RoomService {
       .toList();
   }
 
+  public @NonNull List<Room> composingEligibleRooms() {
+    return this.repository.findRoomsEligibleForComposing()
+      .stream()
+      .map(RoomEntity::toRoomDto)
+      .toList();
+  }
+
   public @NonNull List<Room> allKnownRooms() {
     return this.repository.findAll()
       .stream()
