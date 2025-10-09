@@ -254,11 +254,27 @@ public class RoomService {
     return updatedRoom.toRoomDto();
   }
 
+  /**
+   * Checks if a room is deletable, meaning it has no current or future bookings.
+   *
+   * @param roomId the id of the room to check.
+   * @return true if the room is deletable, false otherwise.
+   */
   public boolean deletableRoom(@NonNull UUID roomId) {
     var room = this.findRoomById(roomId);
     return !this.bookingRepository.existsCurrentOrFutureBookingForRoom(room);
   }
 
+  /**
+   * Deletes a room by its id. If forceDelete is true, all bookings for the room will be deleted as well. Otherwise, if
+   * the room still has bookings assigned to it, an error will be thrown. If the room is a composite room (is a child
+   * room) the deletion is not possible.
+   *
+   * @param roomId      the id of the room to delete.
+   * @param forceDelete if true, all bookings for the room will be deleted as well.
+   * @throws GeneralProblemException if the room does not exist, is part of a composite room or has bookings assigned to
+   *                                 it.
+   */
   @Transactional
   public void deleteRoomById(@NonNull UUID roomId, boolean forceDelete) {
     var room = this.findRoomById(roomId);
@@ -290,12 +306,25 @@ public class RoomService {
     }
   }
 
+  /**
+   * Force deletes a room including all its bookings
+   *
+   * @param roomEntity the room to delete.
+   */
   private void forceDeleteRoom(@NonNull RoomEntity roomEntity) {
     log.debug("Running force deletion of room {}", roomEntity.getId());
     this.bookingRepository.deleteAllByRoom(roomEntity);
     this.repository.delete(roomEntity);
   }
 
+  /**
+   * Maps the given search operator of the rest api to the matching psql operator.
+   *
+   * @param operator the search operator to map to the psql equivalent.
+   * @param value    the value the operator is applied on. Used to determine if the operator is supported.
+   * @return the psql operator as string.
+   * @throws GeneralProblemException if the operator is not supported for the given value type.
+   */
   private @NonNull String operatorForCharacteristic(
     @NonNull SearchCharacteristic.OperatorEnum operator,
     @Nullable Object value

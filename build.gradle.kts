@@ -2,7 +2,7 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
   java
-  id("org.springframework.boot") version "3.5.3"
+  id("org.springframework.boot") version "3.5.6"
   id("io.spring.dependency-management") version "1.1.7"
   id("org.openapi.generator") version "7.14.0"
 }
@@ -12,7 +12,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(24)
+    languageVersion = JavaLanguageVersion.of(25)
   }
 }
 

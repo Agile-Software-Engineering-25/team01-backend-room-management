@@ -1,4 +1,4 @@
-FROM eclipse-temurin:24-jdk-alpine as build
+FROM eclipse-temurin:25-jdk-alpine as build
 
 WORKDIR /room-mgmt
 
@@ -11,7 +11,7 @@ COPY build.gradle.kts ./build.gradle.kts
 
 RUN ./gradlew build -x test --no-daemon
 
-FROM eclipse-temurin:24-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 RUN addgroup --system spring && adduser --system spring --ingroup spring
 

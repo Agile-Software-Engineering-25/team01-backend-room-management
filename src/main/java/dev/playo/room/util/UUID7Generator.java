@@ -10,12 +10,21 @@ import java.util.UUID;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.uuid.UuidValueGenerator;
 
-public class UUID7Generator implements UuidValueGenerator {
+/**
+ * A UUID generator that generates UUID version 7 compliant UUIDs. Also acts as {@link UuidValueGenerator} for hibernate
+ * in order to generate uuid v7 as primary keys.
+ */
+public final class UUID7Generator implements UuidValueGenerator {
 
   private static final Random RANDOM = new SecureRandom();
   private static final VarHandle BYTE_ARRAY_LONG_VIEW_HANDLE =
     MethodHandles.byteArrayViewVarHandle(Long.TYPE.arrayType(), ByteOrder.BIG_ENDIAN);
 
+  /**
+   * Generates a new UUID version 7 compliant UUID.
+   *
+   * @return the generated UUID.
+   */
   public static @Nonnull UUID generateUuid() {
     // get the random data for the second uuid component
     var bytes = new byte[10];
@@ -31,6 +40,9 @@ public class UUID7Generator implements UuidValueGenerator {
     return new UUID(msb, lsb);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @Nonnull UUID generateUuid(@Nonnull SharedSessionContractImplementor session) {
     return generateUuid();
