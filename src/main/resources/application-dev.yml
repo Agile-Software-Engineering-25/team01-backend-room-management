@@ -1,0 +1,6 @@
+spring:
+  jpa:
+    properties:
+      hibernate:
+        generate_statistics: true
+        show_sql: true
