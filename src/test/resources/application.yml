@@ -1,0 +1,4 @@
+room:
+  client:
+    group:
+      url: http://localhost:9000

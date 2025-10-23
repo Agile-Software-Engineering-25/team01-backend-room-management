@@ -24,7 +24,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.wiremock.spring.ConfigureWireMock;
+import org.wiremock.spring.EnableWireMock;
 
+@EnableWireMock(@ConfigureWireMock(port = 9000))
 @SpringBootTest
 class BookingServiceTest extends AbstractPostgresContainerTest {
 
@@ -70,16 +73,16 @@ class BookingServiceTest extends AbstractPostgresContainerTest {
     request.setStartTime(LocalDateTime.of(2024, 7, 1, 10, 0).atOffset(ZoneOffset.UTC));
     request.setEndTime(LocalDateTime.of(2024, 7, 1, 12, 0).atOffset(ZoneOffset.UTC));
     var lecturerId = UUID.randomUUID();
-    var groupId = UUID.randomUUID();
+    var groupId = "GroupA";
     request.setLecturerIds(Set.of(lecturerId));
-    request.setStudentGroupIds(Set.of(groupId));
+    request.setStudentGroupNames(Set.of(groupId));
 
     var booking = bookingService.createBooking(request);
     assertThat(booking.getRoomId()).isEqualTo(room.getId());
     assertThat(booking.getStartTime()).isEqualTo(request.getStartTime());
     assertThat(booking.getEndTime()).isEqualTo(request.getEndTime());
     assertThat(booking.getLecturerIds()).containsExactly(lecturerId);
-    assertThat(booking.getStudentGroupIds()).containsExactly(groupId);
+    assertThat(booking.getStudentGroupNames()).containsExactly(groupId);
   }
 
   @Test
@@ -107,7 +110,7 @@ class BookingServiceTest extends AbstractPostgresContainerTest {
     request1.setStartTime(LocalDateTime.of(2024, 7, 1, 10, 0).atOffset(ZoneOffset.UTC));
     request1.setEndTime(LocalDateTime.of(2024, 7, 1, 12, 0).atOffset(ZoneOffset.UTC));
     request1.setLecturerIds(Set.of(UUID.randomUUID()));
-    request1.setStudentGroupIds(Set.of(UUID.randomUUID()));
+    request1.setStudentGroupNames(Set.of("GroupA"));
 
     bookingService.createBooking(request1);
 
@@ -116,7 +119,7 @@ class BookingServiceTest extends AbstractPostgresContainerTest {
     request2.setStartTime(LocalDateTime.of(2024, 7, 1, 11, 0).atOffset(ZoneOffset.UTC));
     request2.setEndTime(LocalDateTime.of(2024, 7, 1, 13, 0).atOffset(ZoneOffset.UTC));
     request2.setLecturerIds(Set.of(UUID.randomUUID()));
-    request2.setStudentGroupIds(Set.of(UUID.randomUUID()));
+    request2.setStudentGroupNames(Set.of("GroupA"));
 
     var ex = assertThrows(GeneralProblemException.class, () -> bookingService.createBooking(request2));
     assertThat(ex.getMessage()).contains("overlaps with an existing booking");

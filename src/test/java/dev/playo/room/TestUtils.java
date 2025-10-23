@@ -45,8 +45,8 @@ public final class TestUtils {
   public static BookingEntity createTestBooking(RoomEntity room) {
     Set<UUID> lecturerIds = new HashSet<>();
     lecturerIds.add(UUID.randomUUID());
-    Set<UUID> studentGroupIds = new HashSet<>();
-    studentGroupIds.add(UUID.randomUUID());
+    Set<String> studentGroupIds = new HashSet<>();
+    studentGroupIds.add("GroupA");
 
     Instant currentStart = Instant.now();
     Instant currentEnd = currentStart.plus(1, ChronoUnit.HOURS);

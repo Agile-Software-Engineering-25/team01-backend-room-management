@@ -68,11 +68,14 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.flywaydb:flyway-core")
   implementation("org.flywaydb:flyway-database-postgresql")
+
   compileOnly("org.projectlombok:lombok")
   developmentOnly("org.springframework.boot:spring-boot-devtools")
   developmentOnly("org.springframework.boot:spring-boot-docker-compose")
   runtimeOnly("org.postgresql:postgresql")
   annotationProcessor("org.projectlombok:lombok")
+
+  testImplementation("org.wiremock.integrations:wiremock-spring-boot:3.10.0")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testImplementation("org.testcontainers:postgresql:1.19.8")

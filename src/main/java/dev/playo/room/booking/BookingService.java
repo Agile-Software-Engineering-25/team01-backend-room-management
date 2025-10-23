@@ -13,6 +13,7 @@ import dev.playo.room.config.BusinessConfiguration;
 import dev.playo.room.exception.GeneralProblemException;
 import dev.playo.room.room.RoomService;
 import dev.playo.room.room.data.RoomEntity;
+import dev.playo.room.student.StudentGroupClient;
 import dev.playo.room.util.Characteristics;
 import jakarta.transaction.Transactional;
 import java.time.temporal.ChronoUnit;
@@ -33,16 +34,19 @@ public class BookingService {
 
   private final RoomService roomService;
   private final BookingRepository bookingRepository;
+  private final StudentGroupClient studentGroupClient;
   private final BusinessConfiguration businessConfiguration;
 
   @Autowired
   public BookingService(
     @NonNull RoomService roomService,
     @NonNull BookingRepository bookingRepository,
+    @NonNull StudentGroupClient studentGroupClient,
     @NonNull BusinessConfiguration businessConfiguration
   ) {
     this.roomService = roomService;
     this.bookingRepository = bookingRepository;
+    this.studentGroupClient = studentGroupClient;
     this.businessConfiguration = businessConfiguration;
   }
 
@@ -86,7 +90,7 @@ public class BookingService {
         "Cannot book a room after %s.".formatted(this.businessConfiguration.getLateBookingTime()));
     }
 
-    if (request.getStudentGroupIds().isEmpty() && request.getGroupSize() == null) {
+    if (request.getStudentGroupNames().isEmpty() && request.getGroupSize() == null) {
       throw new GeneralProblemException(
         HttpStatus.BAD_REQUEST,
         "Either student group IDs or group size must be provided.");
@@ -108,7 +112,7 @@ public class BookingService {
         "Room %s does not have a seats characteristic defined.".formatted(requestedRoom.getName()));
     }
 
-    this.ensureEnoughSeatsPresent(availableSeats, request.getGroupSize(), request.getStudentGroupIds());
+    this.ensureEnoughSeatsPresent(availableSeats, request.getGroupSize(), request.getStudentGroupNames());
 
     var startInstant = toInstant(request.getStartTime());
     var endInstant = toInstant(request.getEndTime());
@@ -118,7 +122,7 @@ public class BookingService {
     bookingEntity.setStartTime(startInstant);
     bookingEntity.setEndTime(endInstant);
     bookingEntity.setLecturerIds(request.getLecturerIds());
-    bookingEntity.setStudentGroupIds(request.getStudentGroupIds());
+    bookingEntity.setStudentGroupIds(request.getStudentGroupNames());
 
     List<RoomEntity> composedRooms = new ArrayList<>();
     composedRooms.add(requestedRoom);
@@ -184,13 +188,32 @@ public class BookingService {
     this.bookingRepository.delete(booking);
   }
 
-  private void ensureEnoughSeatsPresent(int availableSeats, Integer groupSize, Set<UUID> studentGroupIds) {
+  private void ensureEnoughSeatsPresent(int availableSeats, Integer groupSize, Set<String> studentGroupNames) {
     if (groupSize != null && groupSize > availableSeats) {
       throw new GeneralProblemException(
         HttpStatus.BAD_REQUEST,
         "Not enough seats in the room for the requested group size of %d.".formatted(groupSize));
     }
 
-    // TODO: check with student group service
+    if (groupSize == null && !studentGroupNames.isEmpty()) {
+      int size = 0;
+      for (var groupName : studentGroupNames) {
+        var studentGroup = this.studentGroupClient.getStudentGroupByName(groupName);
+        if (studentGroup == null) {
+          throw new GeneralProblemException(
+            HttpStatus.BAD_REQUEST,
+            "Student group with name '%s' does not exist.".formatted(groupName)
+          );
+        }
+
+        size += studentGroup.studentsCount();
+      }
+
+      if (size > availableSeats) {
+        throw new GeneralProblemException(
+          HttpStatus.BAD_REQUEST,
+          "Not enough seats in the room for the requested student groups.");
+      }
+    }
   }
 }

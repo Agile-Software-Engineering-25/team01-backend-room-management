@@ -44,7 +44,7 @@ public class BookingEntity {
   private Set<UUID> lecturerIds = new HashSet<>();
 
   @Column(nullable = false)
-  private Set<UUID> studentGroupIds = new HashSet<>();
+  private Set<String> studentGroupIds = new HashSet<>();
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   private RoomEntity room;
@@ -59,6 +59,6 @@ public class BookingEntity {
       .startTime(DateTimeNormalizer.fromInstant(this.startTime))
       .endTime(DateTimeNormalizer.fromInstant(this.endTime))
       .lecturerIds(this.lecturerIds)
-      .studentGroupIds(this.studentGroupIds);
+      .studentGroupNames(this.studentGroupIds);
   }
 }

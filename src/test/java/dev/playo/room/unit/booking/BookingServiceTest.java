@@ -19,6 +19,8 @@ import dev.playo.room.config.BusinessConfiguration;
 import dev.playo.room.exception.GeneralProblemException;
 import dev.playo.room.room.RoomService;
 import dev.playo.room.room.data.RoomEntity;
+import dev.playo.room.student.StudentGroupClient;
+import dev.playo.room.student.dto.StudentGroupResponse;
 import dev.playo.room.util.Characteristics;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -40,6 +42,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 class BookingServiceTest {
 
+  @Mock
+  private StudentGroupClient studentGroupClient;
   @Mock
   private RoomService roomService;
   @Mock
@@ -65,7 +69,7 @@ class BookingServiceTest {
     request.setStartTime(LocalDateTime.of(2024, 6, 1, 9, 0).atOffset(ZoneOffset.UTC));
     request.setEndTime(LocalDateTime.of(2024, 6, 1, 12, 0).atOffset(ZoneOffset.UTC));
     request.setLecturerIds(Set.of(UUID.randomUUID()));
-    request.setStudentGroupIds(Set.of(UUID.randomUUID()));
+    request.setStudentGroupNames(Set.of("GroupA"));
 
     var seatsCharacteristic = new Characteristic();
     seatsCharacteristic.setType(Characteristics.SEATS_CHARACTERISTIC);
@@ -75,6 +79,8 @@ class BookingServiceTest {
     when(room.getName()).thenReturn("Raum 1");
     when(room.getCharacteristics()).thenReturn(List.of(seatsCharacteristic));
     when(roomService.findRoomById(request.getRoomId())).thenReturn(room);
+
+    when(this.studentGroupClient.getStudentGroupByName(any())).thenReturn(new StudentGroupResponse("GroupA", 1));
 
     var bookingEntity = mock(BookingEntity.class);
     when(bookingRepository.saveAndFlush(any())).thenReturn(bookingEntity);
@@ -160,7 +166,7 @@ class BookingServiceTest {
     request.setStartTime(LocalDateTime.of(2024, 6, 1, 9, 0).atOffset(ZoneOffset.UTC));
     request.setEndTime(LocalDateTime.of(2024, 6, 1, 12, 0).atOffset(ZoneOffset.UTC));
     request.setLecturerIds(Set.of(UUID.randomUUID()));
-    request.setStudentGroupIds(Set.of(UUID.randomUUID()));
+    request.setStudentGroupNames(Set.of("GroupA"));
 
     var seatsCharacteristic = new Characteristic();
     seatsCharacteristic.setType(Characteristics.SEATS_CHARACTERISTIC);
@@ -171,6 +177,8 @@ class BookingServiceTest {
     when(room.getComposedOf()).thenReturn(Set.of());
     when(room.getCharacteristics()).thenReturn(List.of(seatsCharacteristic));
     when(this.roomService.findRoomById(request.getRoomId())).thenReturn(room);
+
+    when(this.studentGroupClient.getStudentGroupByName(any())).thenReturn(new StudentGroupResponse("GroupA", 1));
 
     when(this.bookingRepository.saveAndFlush(any())).thenThrow(new DataIntegrityViolationException("overlap"));
 

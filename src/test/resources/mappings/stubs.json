@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPattern": "/group/.*"
+  },
+  "response": {
+    "status": 200,
+    "body": "{\"name\":\"GroupA\",\"students_count\":1,\"students\":[{\"uuid\":\"8835a06d-79d2-44f6-94c3-6f123503e352\",\"firstName\":\"string\",\"lastName\":\"string\",\"username\":\"user25@example.com\",\"email\":\"user25@example.com\",\"matriculationNumber\":\"string\",\"degreeProgram\":\"string\",\"semester\":1,\"studyStatus\":\"ENROLLED\",\"cohort\":\"string\",\"address\":\"string\",\"phoneNumber\":\"- 80-98\",\"dateOfBirth\":\"2015-10-20\"}]}",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
