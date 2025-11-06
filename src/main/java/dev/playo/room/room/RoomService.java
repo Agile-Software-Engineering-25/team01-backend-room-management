@@ -15,11 +15,12 @@ import dev.playo.room.util.Characteristics;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+
+import java.awt.print.Book;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
+
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,6 +98,11 @@ public class RoomService {
     roomEntity.setChemSymbol(lowerCaseChemSymbol);
     roomEntity.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
     roomEntity.setCharacteristics(room.getCharacteristics());
+    if (room.getDefects() != null && !room.getDefects().isEmpty()) {
+      roomEntity.setDefects(room.getDefects());
+    } else {
+      roomEntity.setDefects(new ArrayList<>());
+    }
     var savedRoom = this.repository.save(roomEntity);
     return savedRoom.toRoomDto();
   }
@@ -114,6 +120,7 @@ public class RoomService {
     var sql = new StringBuilder("""
       SELECT r.* FROM rooms r WHERE r.id NOT IN (SELECT b.room_id FROM bookings b
       WHERE b.start_time < :endTime AND b.end_time > :startTime)
+      AND r.defects IS NULL OR jsonb_array_length(r.defects) = 0)
       """);
 
     Map<String, Object> parameters = new HashMap<>();
@@ -243,6 +250,23 @@ public class RoomService {
       existingRoom.getComposedOf().add(childRoom);
       this.repository.save(childRoom);
     }
+
+    // List with the Bookings to be deleted
+    List<Booking> affectedBookings = new ArrayList<>();
+
+    boolean wasDefective = (existingRoom.getDefects() != null && !existingRoom.getDefects().isEmpty());
+
+    boolean isDefective = (room.getDefects() != null && !room.getDefects().isEmpty());
+
+    if (!wasDefective && isDefective) {
+      // Load future Bookings of this room
+      List<BookingEntity> futureBookings = this.bookingRepository.findAllFutureBookings(existingRoom, LocalDateTime.now());
+    }
+
+    // send event für booking deletion here
+
+    // Deleting the Bookings
+    this.bookingRepository.deleteAllByRoom(existingRoom);
 
     // Update the values
     existingRoom.setName(lowerCaseName);

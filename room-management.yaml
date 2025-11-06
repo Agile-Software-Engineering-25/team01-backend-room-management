@@ -547,6 +547,11 @@ components:
           items:
             $ref: '#/components/schemas/Room'
           description: List of rooms this room is made of.
+        defects:
+          type: array
+          items:
+            type: string
+          description: List of defects in a Room. If this List is not empty, the room cannot be booked.
       required:
         - id
         - name
@@ -580,6 +585,11 @@ components:
             type: string
             format: uuid
           description: List of room IDs that this room is made of.
+        defects:
+          type: array
+          items:
+            type: string
+          description: List of defects in a Room. If this List is not empty, the room cannot be booked.
       required:
         - name
         - chemSymbol

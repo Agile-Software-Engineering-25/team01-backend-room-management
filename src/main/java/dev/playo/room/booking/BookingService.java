@@ -97,6 +97,12 @@ public class BookingService {
     }
 
     var requestedRoom = this.roomService.findRoomById(request.getRoomId());
+    if (requestedRoom.getDefects() != null &&  !requestedRoom.getDefects().isEmpty()) {
+      throw new GeneralProblemException(
+        HttpStatus.CONFLICT,
+        "Cannot book room marked as defective"
+      );
+    }
     var availableSeats = requestedRoom.getCharacteristics()
       .stream()
       .filter(characteristic -> characteristic.getType().equals(Characteristics.SEATS_CHARACTERISTIC))

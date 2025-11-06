@@ -3,6 +3,7 @@ package dev.playo.room.booking.data;
 import dev.playo.room.building.data.BuildingEntity;
 import dev.playo.room.room.data.RoomEntity;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.NonNull;
@@ -31,6 +32,12 @@ public interface BookingRepository extends JpaRepository<BookingEntity, UUID> {
     WHERE booking.room = :roomEntity AND booking.endTime > CURRENT_TIMESTAMP
     """)
   boolean existsCurrentOrFutureBookingForRoom(@NonNull RoomEntity roomEntity);
+
+  @Query("""
+    SELECT booking FROM BookingEntity booking WHERE booking.room = :roomEntity
+        AND booking.startTime > :currentTime
+    """)
+  List<BookingEntity> findAllFutureBookings(@NonNull RoomEntity roomEntity, @NonNull LocalDateTime currentTime);
 
   @Modifying
   @Query("DELETE FROM BookingEntity booking WHERE booking.room = :roomEntity")
