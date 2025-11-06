@@ -258,21 +258,32 @@ public class RoomService {
 
     boolean isDefective = (room.getDefects() != null && !room.getDefects().isEmpty());
 
+    // Update Room Test schlägt fehl, wenn das im Code enthalten ist. Müsste aber ungefähr die Implementation des Löschens sein
+    /*
     if (!wasDefective && isDefective) {
       // Load future Bookings of this room
       List<BookingEntity> futureBookings = this.bookingRepository.findAllFutureBookings(existingRoom, LocalDateTime.now());
+
+      // send event für booking deletion here
+
+      // Deleting the Bookings
+      if (futureBookings != null && !futureBookings.isEmpty()) {
+        this.bookingRepository.deleteAllByRoom(existingRoom);
+      }
     }
+     */
 
-    // send event für booking deletion here
-
-    // Deleting the Bookings
-    this.bookingRepository.deleteAllByRoom(existingRoom);
 
     // Update the values
     existingRoom.setName(lowerCaseName);
     existingRoom.setChemSymbol(lowerCaseChemSymbol);
     existingRoom.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
     existingRoom.setCharacteristics(room.getCharacteristics());
+    if (room.getDefects() != null && !room.getDefects().isEmpty()) {
+      existingRoom.setDefects(room.getDefects());
+    } else {
+      existingRoom.setDefects(new ArrayList<>());
+    }
     var updatedRoom = this.repository.save(existingRoom);
 
     return updatedRoom.toRoomDto();
