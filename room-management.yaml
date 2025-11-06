@@ -6,7 +6,7 @@ info:
     API for managing buildings and rooms in the Provadis complex.
     Supports CRUD operations for buildings and rooms, room bookings, and availability inquiries.
 servers:
-  - url: https://api.provadis.com/v1
+  - url: https://sau-portal.de/ase-1/room-mgmt
     description: Production server
 paths:
   /buildings:

@@ -31,8 +31,6 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
-      imagePullSecrets:
-        - name: GHCR_READ             # e.g. ghrc-secret for GHCR
       containers:
         - name: app
           image: ghcr.io/agile-software-engineering-25/team01-backend-room-management
