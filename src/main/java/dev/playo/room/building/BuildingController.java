@@ -12,6 +12,7 @@ import java.util.UUID;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,41 +28,48 @@ public class BuildingController implements BuildingsApi {
   }
 
   @Override
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Building> createBuilding(BuildingCreateRequest buildingCreateRequest) {
     return ResponseEntity.ok(this.buildingService.createBuilding(buildingCreateRequest));
   }
 
   @Override
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> deleteBuilding(UUID buildingId) {
     this.buildingService.deleteBuildingById(buildingId);
     return ResponseEntity.ok().build();
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('ADMIN','USER')")
   public ResponseEntity<GetAllBookingsResponse> getBookingsForBuilding(UUID buildingId, LocalDate date) {
     var bookings = this.buildingService.allBookingsByBuildingIdAndDate(buildingId, date);
     return ResponseEntity.ok(new GetAllBookingsResponse(bookings));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('ADMIN','USER')")
   public ResponseEntity<Building> getBuildingById(UUID buildingId) {
     var building = this.buildingService.findBuildingById(buildingId);
     return ResponseEntity.ok(building.toBuildingDto());
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('ADMIN','USER')")
   public ResponseEntity<GetAllBuildingsResponse> getBuildings() {
     var buildings = this.buildingService.allBuildings();
     return ResponseEntity.ok(new GetAllBuildingsResponse(buildings));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('ADMIN','USER')")
   public ResponseEntity<List<Room>> getRoomsForBuilding(UUID buildingId) {
     var rooms = this.buildingService.allRoomsByBuildingId(buildingId);
     return ResponseEntity.ok(rooms);
   }
 
   @Override
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Building> updateBuilding(UUID buildingId, BuildingCreateRequest buildingCreateRequest) {
     var update = this.buildingService.updateBuilding(buildingId, buildingCreateRequest);
     return ResponseEntity.ok(update);

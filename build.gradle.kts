@@ -66,6 +66,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.flywaydb:flyway-core")
   implementation("org.flywaydb:flyway-database-postgresql")
 
@@ -77,6 +78,7 @@ dependencies {
 
   testImplementation("org.wiremock.integrations:wiremock-spring-boot:3.10.0")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation("org.springframework.security:spring-security-test")
   testRuntimeOnly("org.junit.platform:junit-platform-launcher")
   testImplementation("org.testcontainers:postgresql:1.19.8")
   testImplementation("org.testcontainers:junit-jupiter:1.19.8")

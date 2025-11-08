@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
@@ -28,34 +29,40 @@ public class RoomController implements RoomsApi {
   }
 
   @Override
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Room> createRoom(RoomCreateRequest roomCreateRequest) {
     return ResponseEntity.ok(this.roomService.createRoom(roomCreateRequest));
   }
 
   @Override
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> deleteRoomById(UUID roomId, Boolean forceDelete) {
     this.roomService.deleteRoomById(roomId, forceDelete != null && forceDelete);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('ADMIN','USER')")
   public ResponseEntity<List<Room>> findAvailableRooms(RoomInquiry roomInquiry) {
     return ResponseEntity.ok(this.roomService.findAvailableRooms(roomInquiry));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('ADMIN','USER')")
   public ResponseEntity<GetAllBookingsResponse> getBookingsForRoom(UUID roomId, LocalDate date) {
     var bookings = this.roomService.findBookingsByRoomAndDate(roomId, date);
     return ResponseEntity.ok(new GetAllBookingsResponse(bookings));
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('ADMIN','USER')")
   public ResponseEntity<Room> getRoomById(UUID roomId) {
     var roomEntity = this.roomService.findRoomById(roomId);
     return ResponseEntity.ok(roomEntity.toRoomDto());
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('ADMIN','USER')")
   public ResponseEntity<GetAllRoomsResponse> getRooms(Boolean composable) {
     var response = new GetAllRoomsResponse();
     if (composable != null && composable) {
@@ -68,11 +75,13 @@ public class RoomController implements RoomsApi {
   }
 
   @Override
+  @PreAuthorize("hasAnyRole('ADMIN','USER')")
   public ResponseEntity<IsRoomDeletable200Response> isRoomDeletable(UUID roomId) {
     return ResponseEntity.ok(new IsRoomDeletable200Response(this.roomService.deletableRoom(roomId)));
   }
 
   @Override
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Room> updateRoomById(UUID roomId, RoomCreateRequest roomCreateRequest) {
     return ResponseEntity.ok(this.roomService.updateRoom(roomId, roomCreateRequest));
   }
