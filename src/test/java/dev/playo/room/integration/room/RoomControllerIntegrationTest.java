@@ -1,6 +1,7 @@
 package dev.playo.room.integration.room;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -31,6 +32,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -57,6 +59,10 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
   
   private BuildingEntity testBuilding;
 
+  private RequestPostProcessor adminAuth() {
+    return httpBasic("admin", "admin");
+  }
+
   @BeforeEach
   void clearDatabase() {
     this.testCleaner.clean();
@@ -76,6 +82,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       List.of());
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .content(this.objectMapper.writeValueAsString(request))
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk())
@@ -104,6 +111,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       List.of());
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(this.objectMapper.writeValueAsString(request)))
       .andExpect(status().isBadRequest());
@@ -121,6 +129,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       List.of());
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(this.objectMapper.writeValueAsString(request)))
       .andExpect(status().isBadRequest());
@@ -132,6 +141,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     roomRepository.save(room);
 
     mockMvc.perform(delete("/rooms/{id}", room.getId())
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isNoContent());
 
@@ -144,6 +154,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     UUID id = UUID.randomUUID();
 
     mockMvc.perform(delete("/rooms/{id}", id)
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isNotFound());
   }
@@ -153,6 +164,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     String invalidId = "invalid-uuid";
 
     mockMvc.perform(delete("/rooms/{id}", invalidId)
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isBadRequest());
   }
@@ -166,6 +178,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     bookingRepository.save(bookingEntity);
 
     mockMvc.perform(delete("/rooms/{id}", room.getId())
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isBadRequest());
 
@@ -176,6 +189,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     assertThat(booking).isNotEmpty();
 
     mockMvc.perform(delete("/rooms/{id}", room.getId())
+        .with(adminAuth())
         .queryParam("force", "true")
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().is2xxSuccessful());
@@ -190,6 +204,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     this.roomRepository.save(room);
 
     this.mockMvc.perform(get("/rooms/{id}/deletable", room.getId())
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.deletable").value(true));
@@ -204,6 +219,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     this.bookingRepository.save(bookingEntity);
 
     this.mockMvc.perform(get("/rooms/{id}/deletable", room.getId())
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.deletable").value(false));
@@ -214,6 +230,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     var id = UUID.randomUUID();
 
     this.mockMvc.perform(get("/rooms/{id}/deletable", id)
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON))
       .andExpect(status().isNotFound());
   }
@@ -238,6 +255,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
 
     // Perform PUT request to update the room
     mockMvc.perform(put("/rooms/{id}", originalRoom.getId())
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isOk())
@@ -281,6 +299,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
 
     // Perform PUT request to update the room
     mockMvc.perform(put("/rooms/{id}", targetRoom.getId())
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isBadRequest())
@@ -312,6 +331,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
 
     // Perform PUT request to update the room
     mockMvc.perform(put("/rooms/{id}", targetRoom.getId())
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isBadRequest())
@@ -341,6 +361,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     var result = mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(compositeRequest)))
       .andExpect(status().isOk())
@@ -378,6 +399,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(firstCompositeRequest)))
       .andExpect(status().isOk());
@@ -391,6 +413,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(secondCompositeRequest)))
       .andExpect(status().isBadRequest());
@@ -414,6 +437,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(innerCompositeRequest)))
       .andExpect(status().isOk());
@@ -431,6 +455,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(outerCompositeRequest)))
       .andExpect(status().isBadRequest());
@@ -456,6 +481,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(compositeRequest)))
       .andExpect(status().isOk());
@@ -473,6 +499,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     mockMvc.perform(put("/rooms/{id}", composite.getId())
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(updateRequest)))
       .andExpect(status().isOk())
@@ -516,10 +543,12 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(compARequest)))
       .andExpect(status().isOk());
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(compBRequest)))
       .andExpect(status().isOk());
@@ -534,6 +563,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     mockMvc.perform(put("/rooms/{id}", compA.getId())
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(updateCompA)))
       .andExpect(status().isBadRequest());
@@ -555,6 +585,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(compositeRequest)))
       .andExpect(status().isOk());
@@ -563,7 +594,8 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       .filter(r -> r.getName().equals("todetelecomp"))
       .findFirst().orElseThrow();
 
-    mockMvc.perform(delete("/rooms/{id}", composite.getId()))
+    mockMvc.perform(delete("/rooms/{id}", composite.getId())
+        .with(adminAuth()))
       .andExpect(status().isNoContent());
 
     assertThat(roomRepository.findById(composite.getId())).isEmpty();
@@ -587,6 +619,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(compositeRequest)))
       .andExpect(status().isOk());
@@ -598,7 +631,8 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       .filter(r -> r.getName().equals("compchild"))
       .findFirst().orElseThrow();
 
-    mockMvc.perform(delete("/rooms/{id}", composite.getId()))
+    mockMvc.perform(delete("/rooms/{id}", composite.getId())
+        .with(adminAuth()))
       .andExpect(status().isNoContent());
 
     assertThat(roomRepository.findById(composite.getId())).isEmpty();
@@ -622,11 +656,13 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     );
 
     mockMvc.perform(post("/rooms")
+        .with(adminAuth())
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(compositeRequest)))
       .andExpect(status().isOk());
 
-    mockMvc.perform(delete("/rooms/{id}", child1.getId()))
+    mockMvc.perform(delete("/rooms/{id}", child1.getId())
+        .with(adminAuth()))
       .andExpect(status().isBadRequest());
   }
 }
