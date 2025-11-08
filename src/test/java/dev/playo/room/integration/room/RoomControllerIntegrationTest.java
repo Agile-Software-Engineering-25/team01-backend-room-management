@@ -33,7 +33,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)
 @WithMockUser(roles = {"ADMIN", "USER"})
 class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
 
