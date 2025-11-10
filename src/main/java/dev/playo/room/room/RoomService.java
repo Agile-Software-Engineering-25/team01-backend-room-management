@@ -99,6 +99,10 @@ public class RoomService {
     roomEntity.setBuilding(this.buildingRepository.getReferenceById(room.getBuildingId()));
     roomEntity.setCharacteristics(room.getCharacteristics());
     if (room.getDefects() != null && !room.getDefects().isEmpty()) {
+      if (!room.getComposedOf().isEmpty()) {
+        throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+          "A composed room cannot be marked defective. Use the child rooms instead");
+      }
       roomEntity.setDefects(room.getDefects());
     } else {
       roomEntity.setDefects(new ArrayList<>());
@@ -120,7 +124,10 @@ public class RoomService {
     var sql = new StringBuilder("""
       SELECT r.* FROM rooms r WHERE r.id NOT IN (SELECT b.room_id FROM bookings b
       WHERE b.start_time < :endTime AND b.end_time > :startTime)
-      AND r.defects IS NULL OR jsonb_array_length(r.defects) = 0)
+      AND (r.defects IS NULL OR jsonb_array_length(r.defects) = 0)
+      AND NOT EXISTS (
+        SELECT 1 FROM rooms r_child WHERE r_child.parent_id = r.id
+        AND r_child.defects IS NOT NULL AND jsonb_array_length(r_child.defects) = 0)
       """);
 
     Map<String, Object> parameters = new HashMap<>();
@@ -261,6 +268,11 @@ public class RoomService {
     // Update Room Test schlägt fehl, wenn das im Code enthalten ist. Müsste aber ungefähr die Implementation des Löschens sein
     /*
     if (!wasDefective && isDefective) {
+    // Kein composed room darf als defective markiert werden.
+      if (!room.getComposedOf().isEmpty()){
+        throw new GeneralProblemException(HttpStatus.BAD_REQUEST,
+          "A composed room cannot be marked defective. Use the child rooms instead");
+      }
       // Load future Bookings of this room
       List<BookingEntity> futureBookings = this.bookingRepository.findAllFutureBookings(existingRoom, LocalDateTime.now());
 

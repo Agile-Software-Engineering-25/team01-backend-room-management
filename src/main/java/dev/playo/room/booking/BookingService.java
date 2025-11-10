@@ -97,11 +97,21 @@ public class BookingService {
     }
 
     var requestedRoom = this.roomService.findRoomById(request.getRoomId());
-    if (requestedRoom.getDefects() != null &&  !requestedRoom.getDefects().isEmpty()) {
+    if (requestedRoom.getDefects() != null && !requestedRoom.getDefects().isEmpty()) {
       throw new GeneralProblemException(
-        HttpStatus.CONFLICT,
+        HttpStatus.BAD_REQUEST,
         "Cannot book room marked as defective"
       );
+    }
+    if (requestedRoom.getComposedOf() != null && !requestedRoom.getComposedOf().isEmpty()) {
+      for (var composed : requestedRoom.getComposedOf()) {
+        if (composed.getDefects() != null && !composed.getDefects().isEmpty()) {
+          throw new GeneralProblemException(
+            HttpStatus.BAD_REQUEST,
+            "Cannot book room with defective childroom"
+          );
+        }
+      }
     }
     var availableSeats = requestedRoom.getCharacteristics()
       .stream()
