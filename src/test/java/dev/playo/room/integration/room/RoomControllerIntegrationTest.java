@@ -73,6 +73,8 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       room.getCharacteristics(),
       List.of());
 
+    request.setDefects(List.of("defect1", "defect2"));
+
     mockMvc.perform(post("/rooms")
         .content(this.objectMapper.writeValueAsString(request))
         .contentType(MediaType.APPLICATION_JSON))
@@ -84,7 +86,9 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       .andExpect(jsonPath("$.characteristics[0].type").value("SEATS"))
       .andExpect(jsonPath("$.characteristics[0].value").value(30))
       .andExpect(jsonPath("$.characteristics[1].type").value("Projector"))
-      .andExpect(jsonPath("$.characteristics[1].value").value(1));
+      .andExpect(jsonPath("$.characteristics[1].value").value(1))
+      .andExpect(jsonPath("$.defects").isArray())
+      .andExpect(jsonPath("$.defects[0]").value("defect1"));
 
     List<RoomEntity> rooms = roomRepository.findAll();
     assertThat(rooms).hasSize(1);
@@ -233,6 +237,7 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       new Characteristic("SEATS", 30),
       new Characteristic("SpeakerSystem", 2)
     ));
+    updateRequest.setDefects(List.of("defect1", "defect2"));
 
     // Perform PUT request to update the room
     mockMvc.perform(put("/rooms/{id}", originalRoom.getId())
@@ -243,7 +248,9 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
       .andExpect(jsonPath("$.buildingId").value(buildingId.toString()))
       .andExpect(jsonPath("$.characteristics").isArray())
       .andExpect(jsonPath("$.characteristics[0].type").value("SEATS"))
-      .andExpect(jsonPath("$.characteristics[1].type").value("SpeakerSystem"));
+      .andExpect(jsonPath("$.characteristics[1].type").value("SpeakerSystem"))
+      .andExpect(jsonPath("$.defects[0]").value("defect1"))
+      .andExpect(jsonPath("$.defects[1]").value("defect2"));
 
     // Verify that room was updated in the database
     Optional<RoomEntity> updatedRoomOpt = roomRepository.findById(originalRoom.getId());
@@ -255,6 +262,9 @@ class RoomControllerIntegrationTest extends AbstractPostgresContainerTest {
     assertThat(updatedRoom.getCharacteristics()).containsExactlyInAnyOrder(
       new Characteristic("SEATS", 30),
       new Characteristic("SpeakerSystem", 2)
+    );
+    assertThat(updatedRoom.getDefects()).containsExactlyInAnyOrder(
+      "defect1", "defect2"
     );
   }
 

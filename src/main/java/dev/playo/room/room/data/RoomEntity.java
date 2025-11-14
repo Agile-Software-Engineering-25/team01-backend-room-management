@@ -4,18 +4,9 @@ import dev.playo.generated.roommanagement.model.Characteristic;
 import dev.playo.generated.roommanagement.model.Room;
 import dev.playo.room.building.data.BuildingEntity;
 import dev.playo.room.util.UUID7Generator;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import jakarta.persistence.*;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -55,6 +46,10 @@ public class RoomEntity {
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "parent")
   private Set<RoomEntity> composedOf = new HashSet<>();
 
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(columnDefinition = "jsonb")
+  private List<String> defects = new ArrayList<>();
+
   public @NonNull Room toRoomDto() {
     return new Room()
       .id(this.getId())
@@ -62,6 +57,7 @@ public class RoomEntity {
       .chemSymbol(this.getChemSymbol())
       .buildingId(this.getBuilding().getId())
       .characteristics(this.getCharacteristics())
-      .composedOf(this.composedOf.stream().map(RoomEntity::toRoomDto).toList());
+      .composedOf(this.composedOf.stream().map(RoomEntity::toRoomDto).toList())
+      .defects(this.getDefects());
   }
 }

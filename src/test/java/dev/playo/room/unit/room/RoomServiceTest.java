@@ -11,6 +11,8 @@ import dev.playo.room.room.RoomService;
 import dev.playo.room.room.data.RoomEntity;
 import dev.playo.room.room.data.RoomRepository;
 import jakarta.persistence.EntityManager;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -241,6 +243,59 @@ class RoomServiceTest {
     assertEquals(newCharacteristics, result.getCharacteristics());
   }
 
+  @Test
+  void updateRoomShouldChangeDefect() {
+    // Setup
+    UUID roomId = UUID.randomUUID();
+    UUID buildingId = UUID.randomUUID();
+
+    BuildingEntity buildingEntity = new BuildingEntity();
+    buildingEntity.setId(buildingId);
+
+    RoomEntity existingRoom = new RoomEntity();
+    existingRoom.setId(roomId);
+    existingRoom.setName("oldname");
+    existingRoom.setChemSymbol("Hydrogenium");
+    existingRoom.setBuilding(buildingEntity);
+    existingRoom.setCharacteristics(List.of(new Characteristic("SEATS", 20)));
+
+    List<String> newDefects = List.of("defect1", "defect2");
+
+    RoomCreateRequest updateRequest = new RoomCreateRequest();
+    updateRequest.setName("NewRoomName");
+    updateRequest.setChemSymbol("Hydrogenium");
+    updateRequest.setBuildingId(buildingId);
+    updateRequest.setCharacteristics(List.of(new Characteristic("SEATS", 20)));
+    updateRequest.setDefects(newDefects);
+
+    RoomEntity savedRoom = new RoomEntity();
+    savedRoom.setId(roomId);
+    savedRoom.setName("newroomname");
+    savedRoom.setBuilding(buildingEntity);
+    savedRoom.setCharacteristics(List.of(new Characteristic("SEATS", 20)));
+    savedRoom.setDefects(newDefects);
+
+    // Mocking
+    when(roomRepository.findById(roomId)).thenReturn(Optional.of(existingRoom));
+    when(roomRepository.existsByName("newroomname")).thenReturn(false);
+    when(buildingRepository.existsById(buildingId)).thenReturn(true);
+    when(buildingRepository.getReferenceById(buildingId)).thenReturn(buildingEntity);
+    when(roomRepository.save(any(RoomEntity.class))).thenReturn(savedRoom);
+
+    // Execution
+    Room result = roomService.updateRoom(roomId, updateRequest);
+
+    // Verification
+    verify(roomRepository).findById(roomId);
+    verify(roomRepository).existsByName("newroomname");
+    verify(buildingRepository).existsById(buildingId);
+    verify(buildingRepository).getReferenceById(buildingId);
+    verify(roomRepository).save(any(RoomEntity.class));
+
+    // Assertion
+    assertEquals("newroomname", result.getName());
+    assertEquals(newDefects, result.getDefects());
+  }
 
   @Test
   void updateRoomShouldThrowExceptionWhenBuildingDoesNotExist() {
@@ -507,6 +562,43 @@ class RoomServiceTest {
     verify(roomRepository, times(1)).existsByChemSymbol(request.getChemSymbol().toLowerCase());
     verify(buildingRepository, times(1)).existsById(request.getBuildingId());
     verify(roomRepository, never()).save(any(RoomEntity.class));
+  }
+
+  @Test
+  void createRoom_withDefect()  {
+    RoomCreateRequest request = new RoomCreateRequest();
+    request.setName("Defect Room");
+    request.setChemSymbol("DEF");
+    request.setBuildingId(UUID.randomUUID());
+    request.setCharacteristics(List.of(new Characteristic("SEATS", 1)));
+    request.setDefects(List.of("Light flickers"));
+
+    Room expectedDto = new Room();
+    expectedDto.setId(UUID.randomUUID());
+    expectedDto.setName(request.getName());
+    expectedDto.setDefects(request.getDefects());
+
+    RoomEntity savedEntity = mock(RoomEntity.class);
+
+    when(roomRepository.existsByName(anyString())).thenReturn(false);
+    when(roomRepository.existsByChemSymbol(anyString())).thenReturn(false);
+    when(buildingRepository.existsById(any(UUID.class))).thenReturn(true);
+
+    when(buildingRepository.getReferenceById(any(UUID.class))).thenReturn(mock(BuildingEntity.class));
+
+    when(roomRepository.save(any(RoomEntity.class))).thenReturn(savedEntity);
+
+    when(savedEntity.toRoomDto()).thenReturn(expectedDto);
+
+    Room result = roomService.createRoom(request);
+
+    assertNotNull(result);
+    assertEquals("Defect Room", result.getName());
+    assertNotNull(result.getDefects());
+    assertEquals(1, result.getDefects().size());
+    assertEquals("Light flickers", result.getDefects().getFirst());
+
+    verify(roomRepository, times(1)).save(any(RoomEntity.class));
   }
 }
 
