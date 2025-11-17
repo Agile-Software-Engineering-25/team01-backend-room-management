@@ -199,14 +199,7 @@ public class BookingService {
       int size = 0;
       for (var groupName : studentGroupNames) {
         var studentGroup = this.studentGroupClient.getStudentGroupByName(groupName);
-        if (studentGroup == null) {
-          throw new GeneralProblemException(
-            HttpStatus.BAD_REQUEST,
-            "Student group with name '%s' does not exist.".formatted(groupName)
-          );
-        }
-
-        size += studentGroup.studentsCount();
+        size += studentGroup == null ? 0 : studentGroup.studentsCount();
       }
 
       if (size > availableSeats) {
