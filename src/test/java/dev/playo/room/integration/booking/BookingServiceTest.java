@@ -125,4 +125,36 @@ class BookingServiceTest extends AbstractPostgresContainerTest {
     assertThat(ex.getMessage()).contains("overlaps with an existing booking");
   }
 
+  @Test
+  @DisplayName("createBooking of defect room")
+  void createBookingOfDefectRoom() {
+    var buildingRequest = new BuildingCreateRequest();
+    buildingRequest.setName("Test Building");
+    buildingRequest.setDescription("Test Building");
+    buildingRequest.setAddress("Test Address");
+    var building = this.buildingService.createBuilding(buildingRequest);
+
+    var roomRequest = new RoomCreateRequest();
+    roomRequest.setName("Test Room");
+    roomRequest.setChemSymbol("Hydrogenium");
+    roomRequest.setBuildingId(building.getId());
+    var seatsCharacteristic = new Characteristic();
+    seatsCharacteristic.setType(Characteristics.SEATS_CHARACTERISTIC);
+    seatsCharacteristic.setValue(10);
+    roomRequest.setCharacteristics(List.of(seatsCharacteristic));
+    roomRequest.setDefects(List.of("defect"));
+
+    var room = this.roomService.createRoom(roomRequest);
+
+    var request1 = new RoomBookingRequest();
+    request1.setRoomId(room.getId());
+    request1.setStartTime(LocalDateTime.of(2024, 7, 1, 10, 0).atOffset(ZoneOffset.UTC));
+    request1.setEndTime(LocalDateTime.of(2024, 7, 1, 12, 0).atOffset(ZoneOffset.UTC));
+    request1.setLecturerIds(Set.of(UUID.randomUUID()));
+    request1.setStudentGroupNames(Set.of("GroupA"));
+
+    var ex = assertThrows(GeneralProblemException.class, () -> bookingService.createBooking(request1));
+    assertThat(ex.getMessage()).contains("Cannot book room marked as defective");
+  }
+
 }
